@@ -1,7 +1,10 @@
 import {LifeCycle} from '../game/lifecycle';
 import {Group, GameObject} from '../game/types';
 import {Player} from '../actors/player/player.class';
-import {ArrowData, Character, CharacterAnimation, CoordinatesData, PlayerCoordinates, PlayerData, PlayerHealthData, PlayerHitData} from '../../shared/models';
+import {
+	ArrowData, Character, CharacterAnimation, CoordinatesData, PlayerCoordinates, PlayerData, PlayerHealthData, PlayerHitData,
+	PlayerReviveData
+} from '../../shared/models';
 import {AnimationHandler} from '../game/animation.handler';
 import {ArrowEvent, GameEvent, PlayerEvent} from '../../shared/events.model';
 import {Arrow} from '../props/arrow.class';
@@ -115,7 +118,11 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 						y: this.player.player.y,
 						animation: CharacterAnimation.DIE
 					} as PlayerCoordinates);
-					// TODO 'die' event?
+
+					// set revive countdown
+					setTimeout(() => {
+						this.socket.emit(PlayerEvent.revive, this.player.id);
+					}, 3000);
 				}
 			} else {
 				// an other player was hit
@@ -132,6 +139,24 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				const quitPlayer = this.otherPlayers.get(playerId);
 				quitPlayer.destroy();
 				this.otherPlayers.delete(playerId);
+			}
+		});
+
+		// a player is revived
+		this.socket.on(PlayerEvent.revive, (data: PlayerReviveData) => {
+			if (data.id === this.player.id) {
+				this.player.player.x = data.x;
+				this.player.player.y = data.y;
+				this.player.health = data.health;
+				this.player.animate(CharacterAnimation.STAND_DOWN);
+			} else {
+				if (this.otherPlayers.has(data.id)) {
+					const player = this.otherPlayers.get(data.id);
+					player.player.x = data.x;
+					player.player.y = data.y;
+					player.health = data.health;
+					player.animate(CharacterAnimation.STAND_DOWN);
+				}
 			}
 		});
 

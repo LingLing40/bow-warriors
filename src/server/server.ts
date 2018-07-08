@@ -11,7 +11,7 @@ import {
 	ArrowData,
 	AuthenticationData,
 	CharacterAnimation, CoordinatesData, PlayerCoordinates,
-	PlayerData, PlayerHealthData, PlayerHitData
+	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData
 } from '../shared/models';
 
 const express = require('express');
@@ -31,6 +31,8 @@ class GameServer {
 	// private gameHasStarted: boolean = false;
 	private players: AllPlayerData = {};
 	private arrows: AllArrowData = {};
+
+	private readonly baseHealth: number = 3;
 
 	constructor () {
 		this.socketEvents();
@@ -212,6 +214,24 @@ class GameServer {
 			socket.broadcast.emit(PlayerEvent.joined, this.players[socket.id]);
 			// this.gameInitialised(socket);
 		});
+
+		socket.on(PlayerEvent.revive, (id: string) => {
+			const player = this.players[id];
+			if (player) {
+				const coors = this.generateRandomCoordinates();
+				player.x = coors.x;
+				player.y = coors.y;
+				player.health = this.baseHealth;
+				const data: PlayerReviveData = {
+					id,
+					x: player.x,
+					y: player.y,
+					health: player.health
+				};
+				socket.emit(PlayerEvent.revive, data);
+				socket.broadcast.emit(PlayerEvent.revive, data);
+			}
+		});
 	}
 
 	private createPlayer (socket, options: AuthenticationData): void {
@@ -223,7 +243,7 @@ class GameServer {
 			x: coords.x,
 			y: coords.y,
 			animation: CharacterAnimation.STAND_DOWN,
-			health: 3
+			health: this.baseHealth
 		};
 	}
 

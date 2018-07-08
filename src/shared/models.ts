@@ -94,3 +94,10 @@ export interface CoordinatesData {
 export interface PlayerCoordinates extends CoordinatesData {
 	animation: CharacterAnimation;
 }
+
+export interface PlayerReviveData {
+	id: string;
+	x: number;
+	y: number;
+	health: number;
+}

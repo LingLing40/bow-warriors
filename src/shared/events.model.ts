@@ -24,20 +24,23 @@ export class PlayerEvent {
 	// server informs existing players about new player
 	public static joined: string = 'player:joined';
 
-	// server sends initial data for own player
-	public static protagonist: string = 'player:protagonist';
-
 	// server sends list of all other players available
 	public static players: string = 'actors:collection';
 
-	// server informs others about a player that quit
-	public static quit: string = 'player:left';
+	// server sends initial data for own player
+	public static protagonist: string = 'player:protagonist';
+
+	// client sends own movement coords, server informs others
+	public static coordinates: string = 'player:coordinates';
+
+	// client revives himself after dying, server notifies others
+	public static revive: string = 'player:revive';
 
 	// client informs server when hit by arrow
 	public static hit: string = 'player:hit';
 
-	// client sends own movement coords, server informs others
-	public static coordinates: string = 'player:coordinates';
+	// server informs others about a player that quit
+	public static quit: string = 'player:left';
 }
 
 export class ArrowEvent {
@@ -46,9 +49,6 @@ export class ArrowEvent {
 
 	// server triggers arrow creation
 	public static create: string = 'arrow:create';
-
-	// client detects hit of (other players) arrow
-	// public static hit: string = 'arrow:hit';
 
 	// client or server triggers arrow destruction
 	public static destroy: string = 'arrow:destroy';
