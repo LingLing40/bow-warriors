@@ -14,6 +14,9 @@
         "suppressImplicitAnyIndexErrors": true,
         "target": "es5"
     },
+	"types": [
+		"types/phaser.d.ts"
+	],
     "exclude": [
         "node_modules",
         "*.spec.ts"

@@ -1,3 +1,30 @@
+import {GameScene} from '../scenes/game.scene';
+
+export class Game {
+	game: Phaser.Game;
+
+	constructor () {
+		const config = {
+			type: Phaser.AUTO,
+			width: 800,
+			height: 600,
+			physics: {
+				default: 'arcade',
+				arcade: {
+					gravity: {y: 0},
+					debug: true
+				}
+			},
+			scene: [
+				GameScene
+			]
+		};
+
+		this.game = new Phaser.Game(config);
+	}
+}
+
+/*
 import {CometEvent, GameEvent, PlayerEvent} from '../../shared/events.model';
 import {Player} from '../actors/player/player.class';
 import {Projectile} from '../props/powers/projectile/projectile.class';
@@ -191,3 +218,4 @@ export class Game {
     }
 
 }
+*/

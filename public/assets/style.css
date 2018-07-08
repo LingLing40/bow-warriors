@@ -1,13 +1,18 @@
 body {
-    overflow: hidden;
+    /* overflow: hidden; */
     margin: 0;
-    background: black;
+    background: skyblue;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: url('galaxy.jpg');
+    /* background: url('galaxy.jpg'); */
     background-size: cover;
     height: 100vh;
+}
+
+canvas {
+    max-width: 100vw;
+    height: auto;
 }
 
 .visible {

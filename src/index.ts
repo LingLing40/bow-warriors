@@ -1,3 +1,6 @@
-import {PhaserSpaceGame} from './client/engine/phaser-engine.class';
+import 'phaser';
+import {Game} from './client/game/game.class';
 
-new PhaserSpaceGame();
+window.onload = () => {
+	new Game();
+};
