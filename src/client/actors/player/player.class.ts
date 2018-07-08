@@ -9,23 +9,27 @@ import {Explode} from '../../props/explosion/explosion.class';
 import {Group, Scene, Sprite} from '../../game/types';
 import {Character, CharacterAnimation, PlayerCoordinates, PlayerData} from '../../../shared/models';
 import {AnimationHandler} from '../../game/animation.handler';
+import {Hud} from '../../hud/hud.class';
 
 export class Player {
 	public player: Sprite;
 	public lastDirection: string = 'down';
 	public isShooting: boolean = false;
-	public health = 3;
+	public health;
 	public character: Character;
 	public id: string;
+	public name: string;
 	public readonly baseVelocity: number = 150;
 	private readonly bodySizeX: number = 30;
 	private readonly bodySizeY: number = 50;
 	private group: Group;
+	private hud: Hud;
 
 	constructor (scene: Scene, data: PlayerData, group?: Group) {
 		this.id = data.id;
 		this.health = data.health;
 		this.character = data.character;
+		this.name = data.name;
 
 		if (group) {
 			this.player = group.create(data.x, data.y, data.character);
@@ -47,14 +51,25 @@ export class Player {
 		this.player.setBounce(0.2);
 		this.player.setCollideWorldBounds(true);
 		this.player.setFrame(130);
+
+		this.hud = new Hud(scene, this);
 	}
 
-	public setCoordinates (data: PlayerCoordinates): void {
-		this.player.x = data.x;
-		this.player.y = data.y;
+	public updateMovement (data: PlayerCoordinates): void {
+		this.setCoordinates(data.x, data.y);
 		if (data.animation) {
 			this.animate(data.animation);
 		}
+	}
+
+	public setCoordinates (x: number, y: number): void {
+		this.player.x = x;
+		this.player.y = y;
+		this.updateHudCoordinates();
+	}
+
+	public updateHudCoordinates() {
+		this.hud.setCoordinates(this);
 	}
 
 	public animate (key: CharacterAnimation | string, ignoreIfPlaying = true): void {

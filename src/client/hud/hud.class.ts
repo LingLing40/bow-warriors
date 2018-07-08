@@ -1,30 +1,26 @@
+import {Scene, Text} from '../game/types';
+import {Player} from '../actors/player/player.class';
+
 export class Hud {
 
-	private ammo: Phaser.Text;
-	private name: string;
-	private style: { font, fill };
+	private name: Text;
+	private style: { font, fill, align };
 
-	constructor () {
+	constructor (scene: Scene, player: Player) {
 		this.style = {
 			font: '10px Arial',
-			fill: '#ffffff'
-		}
+			fill: '#ffffff',
+			align: 'center'
+		};
+
+		this.name = scene.add.text(0, 0, player.name.substring(0, 6), this.style);
+		this.name.setOrigin(0.5, 0);
+		this.setCoordinates(player);
 	}
 
-	public setName (game, player): void {
-		this.name = game.add.text(0, 10, player.name.substring(0, 6), this.style);
-		player.addChild(this.name);
-	}
-
-	public update (ammo): void {
-		this.ammo.setText(`${ammo ? ammo : ''}`);
-	}
-
-	public setAmmo (game, player, weapon): void {
-		if (this.ammo) {
-			this.ammo.setText('');
-		}
-		this.ammo = game.add.text(0, 25, weapon.bulletCount, this.style);
-		player.addChild(this.ammo);
+	public setCoordinates (player: Player): void {
+		const center: Phaser.Math.Vector2 = player.player.getCenter();
+		this.name.x = center.x;
+		this.name.y = center.y + player.player.height / 2;
 	}
 }

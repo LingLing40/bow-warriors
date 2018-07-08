@@ -96,7 +96,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// when an other player moves
 		this.socket.on(PlayerEvent.coordinates, (data: PlayerCoordinates) => {
 			if (this.otherPlayers.has(data.id)) {
-				this.otherPlayers.get(data.id).setCoordinates(data);
+				this.otherPlayers.get(data.id).updateMovement(data);
 				this.otherPlayers.get(data.id).player.setVelocity(0, 0);
 			}
 		});
@@ -145,18 +145,14 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// a player is revived
 		this.socket.on(PlayerEvent.revive, (data: PlayerReviveData) => {
 			if (data.id === this.player.id) {
-				this.player.player.x = data.x;
-				this.player.player.y = data.y;
+				this.player.setCoordinates(data.x, data.y);
 				this.player.health = data.health;
 				this.player.animate(CharacterAnimation.STAND_DOWN);
-			} else {
-				if (this.otherPlayers.has(data.id)) {
-					const player = this.otherPlayers.get(data.id);
-					player.player.x = data.x;
-					player.player.y = data.y;
-					player.health = data.health;
-					player.animate(CharacterAnimation.STAND_DOWN);
-				}
+			} else if (this.otherPlayers.has(data.id)) {
+				const player = this.otherPlayers.get(data.id);
+				player.setCoordinates(data.x, data.y);
+				player.health = data.health;
+				player.animate(CharacterAnimation.STAND_DOWN);
 			}
 		});
 
@@ -199,7 +195,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// request own player from server
 		this.socket.emit(GameEvent.authentication,
 			{
-				name: 'Test' + this.socket.id,
+				name: this.socket.id,
 				character: Character.DEFAULT
 			});
 
@@ -229,6 +225,9 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			if (arrowCoors.length > 0) {
 				this.socket.emit(ArrowEvent.coordinates, arrowCoors);
 			}
+
+			// update hud position
+			this.player.updateHudCoordinates();
 
 			// do not react if player is dead
 			if (this.player.health === 0) {
