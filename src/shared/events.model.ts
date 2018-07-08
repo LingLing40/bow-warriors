@@ -33,8 +33,8 @@ export class PlayerEvent {
 	// server informs others about a player that quit
 	public static quit: string = 'player:left';
 
-	// TODO when hit by arrow
-	// public static hit: string = 'player:hit';
+	// client informs server when hit by arrow
+	public static hit: string = 'player:hit';
 
 	// client sends own movement coords, server informs others
 	public static coordinates: string = 'player:coordinates';
@@ -48,11 +48,11 @@ export class ArrowEvent {
 	public static create: string = 'arrow:create';
 
 	// client detects hit of (other players) arrow
-	public static hit: string = 'arrow:hit';
+	// public static hit: string = 'arrow:hit';
 
-	// server triggers arrow destruction
+	// client or server triggers arrow destruction
 	public static destroy: string = 'arrow:destroy';
 
-	// TODO update arrow position
-	// public static coordinates: string = 'arrow:coordinates';
+	// client updates positions of own arrows, server broadcasts positions
+	public static coordinates: string = 'arrow:coordinates';
 }

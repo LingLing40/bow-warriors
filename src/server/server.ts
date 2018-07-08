@@ -10,8 +10,8 @@ import {
 	AllPlayerData,
 	ArrowData,
 	AuthenticationData,
-	CharacterAnimation, PlayerCoordinates,
-	PlayerData
+	CharacterAnimation, CoordinatesData, PlayerCoordinates,
+	PlayerData, PlayerHealthData, PlayerHitData
 } from '../shared/models';
 
 const express = require('express');
@@ -44,7 +44,7 @@ class GameServer {
 
 	private socketEvents (): void {
 		io.on(ServerEvent.connected, socket => {
-			console.info('connected', socket);
+			console.info('connected');
 			this.attachListeners(socket);
 
 			socket.on('arrow', (id) => {
@@ -58,27 +58,64 @@ class GameServer {
 		this.addMovementListener(socket);
 		this.addSignOutListener(socket);
 		this.addArrowListeners(socket);
-		// this.addHitListener(socket);
+		this.addHitListener(socket);
 		// this.addCometHitListener(socket);
 		// this.addPickupListener(socket);
 	}
 
 	private addArrowListeners (socket): void {
 		socket.on(ArrowEvent.shoot, (arrowData: ArrowData) => {
-			// TODO arrows must be stored in this.arrows and list with positions must be updated continuously
 			arrowData.id = uuid();
+			this.arrows[arrowData.id] = arrowData;
 			socket.emit(ArrowEvent.create, arrowData);
 			socket.broadcast.emit(ArrowEvent.create, arrowData);
 		});
+
+		socket.on(ArrowEvent.coordinates, (data: CoordinatesData[]) => {
+			const update: CoordinatesData[] = [];
+			data.forEach((coors: CoordinatesData) => {
+				if (this.arrows[coors.id]) {
+					this.arrows[coors.id].x = coors.x;
+					this.arrows[coors.id].y = coors.y;
+					update.push(coors);
+				}
+			});
+			socket.broadcast.emit(ArrowEvent.coordinates, update);
+		});
+
+		socket.on(ArrowEvent.destroy, (id: string) => {
+			if (this.arrows[id]) {
+				socket.emit(ArrowEvent.destroy, id);
+				socket.broadcast.emit(ArrowEvent.destroy, id);
+				delete this.arrows[id];
+			}
+		});
 	}
 
-	/*
 	private addHitListener(socket): void {
-			socket.on(PlayerEvent.hit, (playerId) => {
-					socket.broadcast.emit(PlayerEvent.hit, playerId);
+			socket.on(PlayerEvent.hit, (data: PlayerHitData) => {
+				const player = this.players[data.playerId];
+				if (player) {
+					player.health--;
+					if (player.health < 0) {
+						player.health = 0;
+					}
+					if (this.arrows[data.arrowId]) {
+						socket.emit(ArrowEvent.destroy, data.arrowId);
+						socket.broadcast.emit(ArrowEvent.destroy, data.arrowId);
+						delete this.arrows[data.arrowId];
+					}
+					const playerHealthData: PlayerHealthData = {
+						id: player.id,
+						health: player.health
+					};
+					socket.emit(PlayerEvent.hit, playerHealthData);
+					socket.broadcast.emit(PlayerEvent.hit, playerHealthData);
+				}
 			});
 	}
 
+	/*
 	private updateComet(socket) {
 			if (this.hasComet) {
 					let asteroidCoordinates = this.generateRandomCoordinates();
@@ -148,7 +185,13 @@ class GameServer {
 
 	private addMovementListener (socket): void {
 		socket.on(PlayerEvent.coordinates, (data: PlayerCoordinates) => {
-			socket.broadcast.emit(PlayerEvent.coordinates, data);
+			const player = this.players[data.id];
+			if (player) {
+				player.x = data.x;
+				player.y = data.y;
+				player.animation = data.animation;
+				socket.broadcast.emit(PlayerEvent.coordinates, data);
+			}
 		});
 	}
 

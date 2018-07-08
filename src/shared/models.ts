@@ -67,9 +67,22 @@ export interface AllArrowData {
 }
 
 /**
+ * Data sent by client when player was hit by arrow
+ */
+export interface PlayerHitData {
+	playerId: string;
+	arrowId: string;
+}
+
+export interface PlayerHealthData {
+	id: string;
+	health: number;
+}
+
+/**
  * General coordinate update
  */
-export interface Coordinates {
+export interface CoordinatesData {
 	id: string;
 	x: number;
 	y: number;
@@ -78,6 +91,6 @@ export interface Coordinates {
 /**
  * Coordinate update for player
  */
-export interface PlayerCoordinates extends Coordinates {
+export interface PlayerCoordinates extends CoordinatesData {
 	animation: CharacterAnimation;
 }
