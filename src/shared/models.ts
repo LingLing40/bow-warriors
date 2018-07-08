@@ -27,8 +27,6 @@ export interface PlayerData {
 	character: Character;
 	x: number;
 	y: number;
-	// velocityX: number;
-	// velocityY: number;
 	animation: CharacterAnimation;
 	health: number;
 }
@@ -69,9 +67,17 @@ export interface AllArrowData {
 }
 
 /**
- * 
+ * General coordinate update
  */
-export interface PlayerCoordinates {
+export interface Coordinates {
 	id: string;
 	x: number;
+	y: number;
+}
+
+/**
+ * Coordinate update for player
+ */
+export interface PlayerCoordinates extends Coordinates {
+	animation: CharacterAnimation;
 }

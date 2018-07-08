@@ -10,7 +10,7 @@ import {
 	AllPlayerData,
 	ArrowData,
 	AuthenticationData,
-	CharacterAnimation,
+	CharacterAnimation, PlayerCoordinates,
 	PlayerData
 } from '../shared/models';
 
@@ -147,12 +147,8 @@ class GameServer {
 	*/
 
 	private addMovementListener (socket): void {
-		// TODO
-		socket.on(PlayerEvent.coordinates, (coors: PlayerCoordinates) => {
-			socket.broadcast.emit(PlayerEvent.coordinates, {
-				coors: coors,
-				player: socket.player
-			});
+		socket.on(PlayerEvent.coordinates, (data: PlayerCoordinates) => {
+			socket.broadcast.emit(PlayerEvent.coordinates, data);
 		});
 	}
 

@@ -1,7 +1,7 @@
 import {LifeCycle} from '../game/lifecycle';
-import {Sprite, Group, GameObject} from '../game/types';
+import {Group, GameObject} from '../game/types';
 import {Player} from '../actors/player/player.class';
-import {ArrowData, Character, CharacterAnimation, PlayerData} from '../../shared/models';
+import {ArrowData, Character, CharacterAnimation, PlayerCoordinates, PlayerData} from '../../shared/models';
 import {AnimationHandler} from '../game/animation.handler';
 import {ArrowEvent, GameEvent, PlayerEvent} from '../../shared/events.model';
 import {Arrow} from '../props/arrow.class';
@@ -84,6 +84,11 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			this.otherPlayers.set(playerData.id, joinedPlayer);
 		});
 
+		// when an other player moves
+		this.socket.on(PlayerEvent.coordinates, (data: PlayerCoordinates) => {
+			this.otherPlayers.get(data.id).setCoordinates(data);
+		});
+
 		// an other player quits
 		this.socket.on(PlayerEvent.quit, (playerId: string) => {
 			if (this.otherPlayers.has(playerId)) {
@@ -119,6 +124,8 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			&& this.cursors.left
 			&& this.cursors.right) {
 
+			let animation: string = null;
+
 			// do not react if player is dead
 			if (this.player.health === 0) {
 				return;
@@ -127,7 +134,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			// trigger start of shoot animation
 			if (this.cursors.space.isDown) {
 				this.player.isShooting = true;
-				AnimationHandler.play(this.player, `shoot_${this.player.lastDirection}`, true);
+				animation = `shoot_${this.player.lastDirection}`;
 				this.player.player.setVelocity(0, 0);
 			}
 
@@ -138,11 +145,8 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 
 					// determine arrow direction
 					let angle = 0;
-					let velocityX = 0;
-					let velocityY = 0;
 					let posDiffX = 0;
 					let posDiffY = 0;
-					let turnBody = false;
 
 					switch (this.player.lastDirection) {
 						case 'left':
@@ -155,16 +159,14 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 						case 'up':
 							angle = 90;
 							posDiffY = -1;
-							turnBody = true;
 							break;
 						case 'down':
 							angle = 270;
 							posDiffY = 1;
-							turnBody = true;
 					}
 
-					let arrowX = this.player.player.x + posDiffX * this.player.player.displayHeight / 2;
-					let arrowY = this.player.player.y + posDiffY * this.player.player.displayHeight / 2;
+					const arrowX = this.player.player.x + posDiffX * this.player.player.displayHeight / 2;
+					const arrowY = this.player.player.y + posDiffY * this.player.player.displayHeight / 2;
 
 					const arrowData: ArrowData = {
 						id: null, // set by server
@@ -180,6 +182,16 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			}
 
 			if (this.player.isShooting) {
+				if (animation) {
+					this.player.animate(animation);
+				}
+				const coors = {
+					id: this.player.id,
+					x: this.player.player.x,
+					y: this.player.player.y,
+					animation
+				};
+				this.socket.emit(PlayerEvent.coordinates, coors);
 				return;
 			}
 
@@ -220,12 +232,12 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 					this.player.isShooting = false;
 				}
 				if (this.player.isShooting) {
-					AnimationHandler.play(this.player, `shoot_${this.player.lastDirection}`, true);
+					animation = `shoot_${this.player.lastDirection}`;
 				}
 
 			} else {
 
-				AnimationHandler.play(this.player, this.player.lastDirection, true);
+				animation = this.player.lastDirection;
 
 				// stand if no cursors are active
 				if (this.cursors.up.isUp
@@ -233,9 +245,20 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 					&& this.cursors.left.isUp
 					&& this.cursors.right.isUp) {
 					this.player.player.setVelocity(0, 0);
-					AnimationHandler.play(this.player, `stand_${this.player.lastDirection}`, true);
+					animation =`stand_${this.player.lastDirection}`;
 				}
 			}
+
+			if (animation) {
+				this.player.animate(animation);
+			}
+			const coors = {
+				id: this.player.id,
+				x: this.player.player.x,
+				y: this.player.player.y,
+				animation
+			};
+			this.socket.emit(PlayerEvent.coordinates, coors);
 
 			/*
 			if (this.cursors.up.isDown && this.player.body.touching.down) {

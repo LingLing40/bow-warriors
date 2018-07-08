@@ -7,7 +7,7 @@ import {SpaceShip} from '../../../shared/models';
 import {Explode} from '../../props/explosion/explosion.class';
 */
 import {Group, Scene, Sprite} from '../../game/types';
-import {Character, PlayerData} from '../../../shared/models';
+import {Character, CharacterAnimation, PlayerCoordinates, PlayerData} from '../../../shared/models';
 import {AnimationHandler} from '../../game/animation.handler';
 
 export class Player {
@@ -49,7 +49,19 @@ export class Player {
 		this.player.setFrame(130);
 	}
 
-	public destroy() {
+	public setCoordinates (data: PlayerCoordinates): void {
+		this.player.x = data.x;
+		this.player.y = data.y;
+		if (data.animation) {
+			this.animate(data.animation);
+		}
+	}
+
+	public animate (key: CharacterAnimation | string, ignoreIfPlaying = true): void {
+		AnimationHandler.play(this, key, ignoreIfPlaying);
+	}
+
+	public destroy (): void {
 		if (this.group) {
 			this.group.remove(this.player, true, true);
 		} else {
