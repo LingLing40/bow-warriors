@@ -4,10 +4,11 @@ export class Game {
 	game: Phaser.Game;
 
 	constructor () {
-		const config = {
+		const config: GameConfig = {
 			type: Phaser.AUTO,
-			width: 800,
-			height: 600,
+			width: window.innerWidth / 2,
+			height: window.innerHeight / 2,
+			'render.pixelArt': true,
 			physics: {
 				default: 'arcade',
 				arcade: {

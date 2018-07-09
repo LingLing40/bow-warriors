@@ -40,14 +40,42 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			'assets/characters/base.png',
 			{frameWidth: 64, frameHeight: 64}
 		);
+
+		this.load.image('tiles', 'assets/map.png');
+		this.load.tilemapTiledJSON('map', 'assets/map.json');
 	}
 
 	create () {
+
+		// create map
+		const map = this.make.tilemap({ key: 'map' });
+
+		// Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
+		// Phaser's cache (i.e. the name you used in preload)
+		const tileset = map.addTilesetImage('Terrain', 'tiles');
+
+		// Parameters: layer name (or index) from Tiled, tileset, x, y
+		const belowLayer = map.createStaticLayer('below_player', tileset, 0, 0);
+		const worldLayer = map.createStaticLayer('world', tileset, 0, 0);
+		const aboveLayer = map.createStaticLayer('above_player', tileset, 0, 0);
+		worldLayer.setCollisionByProperty({ collides: true });
+		aboveLayer.setDepth(10);
+		this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+		// debug
+		const debugGraphics = this.add.graphics().setAlpha(0.75);
+		worldLayer.renderDebug(debugGraphics, {
+			tileColor: null, // Color of non-colliding tiles
+			collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+			faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+		});
 
 		// create sprite groups
 		this.arrowsGroup = this.physics.add.group();
 		this.ownArrowsGroup = this.physics.add.group();
 		this.otherPlayersGroup = this.physics.add.group();
+
+		/*
 		const platforms = this.physics.add.staticGroup();
 
 		platforms.create(400, 568, 'ground').setScale(2).refreshBody();
@@ -55,10 +83,12 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		platforms.create(600, 400, 'ground');
 		platforms.create(50, 250, 'ground');
 		platforms.create(750, 220, 'ground');
+		*/
 
 		// add collider for arrows. Only own arrows are tracked, this way
 		// the removal of arrows by other players is handled by the server
-		this.physics.add.collider(this.ownArrowsGroup, platforms, this.onArrowCollision, undefined, this);
+		// this.physics.add.collider(this.ownArrowsGroup, platforms, this.onArrowCollision, undefined, this);
+		this.physics.add.collider(this.ownArrowsGroup, worldLayer, this.onArrowCollision, undefined, this);
 		this.physics.add.collider(this.ownArrowsGroup, this.otherPlayersGroup, this.onHitOtherPlayer, undefined, this);
 		// this.physics.add.collider(this.otherPlayersGroup, this.arrowsGroup, this.onHitOtherPlayer, undefined, this);
 		// this.physics.add.collider(this.otherPlayersGroup, platforms);
@@ -67,15 +97,16 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// get initial data for own player
 		this.socket.on(PlayerEvent.protagonist, (playerData: PlayerData) => {
 			this.player = new Player(this, playerData);
-			this.physics.add.collider(this.player.player, platforms);
+			this.physics.add.collider(this.player.player, worldLayer);
+			// this.physics.add.collider(this.player.player, platforms);
 			// this.physics.add.collider(this.player.player, this.arrowsGroup, this.onHitOtherPlayer, undefined, this);
 
 			// camera
-			/*
+			//*
 			const camera = this.cameras.main;
-			// camera.startFollow(this.player);
-			camera.centerToBounds();
-			camera.setBounds(0, 0, 800, 600); // map.widthInPixels, map.heightInPixels);
+			camera.startFollow(this.player.player);
+			// camera.centerToBounds();
+			camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 			//*/
 		});
 
