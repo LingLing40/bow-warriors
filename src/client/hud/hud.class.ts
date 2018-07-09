@@ -1,5 +1,6 @@
 import {Scene, Text} from '../game/types';
 import {Player} from '../actors/player/player.class';
+import {LayerDepth} from '../game/settings';
 
 export class Hud {
 
@@ -15,6 +16,7 @@ export class Hud {
 
 		this.name = scene.add.text(0, 0, player.name.substring(0, 6), this.style);
 		this.name.setOrigin(0.5, 0);
+		this.name.setDepth(LayerDepth.HUD);
 		this.setCoordinates(player);
 	}
 

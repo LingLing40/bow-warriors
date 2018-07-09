@@ -8,6 +8,7 @@ import {
 import {AnimationHandler} from '../game/animation.handler';
 import {ArrowEvent, GameEvent, PlayerEvent} from '../../shared/events.model';
 import {Arrow} from '../props/arrow.class';
+import {LayerDepth} from '../game/settings';
 
 export class GameScene extends Phaser.Scene implements LifeCycle {
 
@@ -34,15 +35,14 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	}
 
 	preload () {
-		this.load.image('ground', 'assets/platform.png');
 		this.load.image('arrow', 'assets/weapons/arrow.png');
 		this.load.spritesheet(Character.DEFAULT,
 			'assets/characters/base.png',
 			{frameWidth: 64, frameHeight: 64}
 		);
 
-		this.load.image('tiles', 'assets/map.png');
-		this.load.tilemapTiledJSON('map', 'assets/map.json');
+		this.load.image('tiles', 'assets/tilesets/map_base_extruded.png');
+		this.load.tilemapTiledJSON('map', 'assets/tilesets/map.json');
 	}
 
 	create () {
@@ -52,38 +52,43 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 
 		// Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
 		// Phaser's cache (i.e. the name you used in preload)
-		const tileset = map.addTilesetImage('Terrain', 'tiles');
+		const tileset = map.addTilesetImage('Terrain', 'tiles', 32, 32, 1, 2);
 
 		// Parameters: layer name (or index) from Tiled, tileset, x, y
+		const belowLayer2 = map.createStaticLayer('below_player2', tileset, 0, 0);
 		const belowLayer = map.createStaticLayer('below_player', tileset, 0, 0);
+		const worldLowLayer = map.createStaticLayer('world_low', tileset, 0, 0);
 		const worldLayer = map.createStaticLayer('world', tileset, 0, 0);
 		const aboveLayer = map.createStaticLayer('above_player', tileset, 0, 0);
+
+		worldLowLayer.setCollisionByProperty({ collides: true });
 		worldLayer.setCollisionByProperty({ collides: true });
-		aboveLayer.setDepth(10);
+		aboveLayer.setDepth(LayerDepth.WORLD_ABOVE_PLAYER);
 		this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
 		// debug
+		//*
+		const arrowDebugGraphics = this.add.graphics().setAlpha(0.5);
+		worldLowLayer.renderDebug(arrowDebugGraphics, {
+			tileColor: null, // Color of non-colliding tiles
+			collidingTileColor: new Phaser.Display.Color(178, 243, 3, 255), // Color of colliding tiles
+			faceColor: new Phaser.Display.Color(67, 221, 100, 255) // Color of colliding face edges
+		});
 		const debugGraphics = this.add.graphics().setAlpha(0.75);
 		worldLayer.renderDebug(debugGraphics, {
 			tileColor: null, // Color of non-colliding tiles
 			collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
 			faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
 		});
+		//*/
 
 		// create sprite groups
 		this.arrowsGroup = this.physics.add.group();
 		this.ownArrowsGroup = this.physics.add.group();
 		this.otherPlayersGroup = this.physics.add.group();
 
-		/*
-		const platforms = this.physics.add.staticGroup();
-
-		platforms.create(400, 568, 'ground').setScale(2).refreshBody();
-
-		platforms.create(600, 400, 'ground');
-		platforms.create(50, 250, 'ground');
-		platforms.create(750, 220, 'ground');
-		*/
+		// Test with object, area has x, y, width, height
+		// const spawnArea = map.findObject('Objects', obj => obj.name === 'Spawn Area');
 
 		// add collider for arrows. Only own arrows are tracked, this way
 		// the removal of arrows by other players is handled by the server
@@ -98,6 +103,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.socket.on(PlayerEvent.protagonist, (playerData: PlayerData) => {
 			this.player = new Player(this, playerData);
 			this.physics.add.collider(this.player.player, worldLayer);
+			this.physics.add.collider(this.player.player, worldLowLayer);
 			// this.physics.add.collider(this.player.player, platforms);
 			// this.physics.add.collider(this.player.player, this.arrowsGroup, this.onHitOtherPlayer, undefined, this);
 

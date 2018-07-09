@@ -6,7 +6,7 @@ export class AnimationHandler {
 	private static readonly frameRate: number = 20;
 	private static characters: Set<Character> = new Set();
 
-	public static readonly shootDuration: number = 500;
+	public static readonly shootDuration: number = 400;
 	
 	public static add(scene: Scene, character: Character): void {
 

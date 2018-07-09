@@ -10,6 +10,7 @@ import {Group, Scene, Sprite} from '../../game/types';
 import {Character, CharacterAnimation, PlayerCoordinates, PlayerData} from '../../../shared/models';
 import {AnimationHandler} from '../../game/animation.handler';
 import {Hud} from '../../hud/hud.class';
+import {LayerDepth} from '../../game/settings';
 
 export class Player {
 	public player: Sprite;
@@ -20,8 +21,9 @@ export class Player {
 	public id: string;
 	public name: string;
 	public readonly baseVelocity: number = 150;
-	private readonly bodySizeX: number = 30;
-	private readonly bodySizeY: number = 50;
+	private readonly bodySizeX: number = 20;
+	private readonly bodySizeY: number = 15;
+	private readonly bodySizeYOffset: number = 25;
 	private group: Group;
 	private hud: Hud;
 
@@ -41,7 +43,7 @@ export class Player {
 		AnimationHandler.add(scene, data.character);
 
 		const bodyOffsetX = (this.player.width / 2) - (this.bodySizeX / 2);
-		const bodyOffsetY = (this.player.height / 2) - (this.bodySizeY / 2) + 5;
+		const bodyOffsetY = (this.player.height / 2) - (this.bodySizeY / 2) + this.bodySizeYOffset;
 
 		this.player.body
 			.setSize(this.bodySizeX, this.bodySizeY)
@@ -51,6 +53,7 @@ export class Player {
 		this.player.setBounce(0.2);
 		this.player.setCollideWorldBounds(true);
 		this.player.setFrame(130);
+		this.player.setDepth(LayerDepth.PLAYER);
 
 		this.hud = new Hud(scene, this);
 	}

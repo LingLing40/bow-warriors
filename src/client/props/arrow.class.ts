@@ -4,7 +4,7 @@ import {ArrowData} from '../../shared/models';
 export class Arrow {
 	public arrow: Sprite;
 	public id: string;
-	public readonly baseVelocity: number = 250;
+	public readonly baseVelocity: number = 350;
 	private group: Group;
 
 	constructor (scene: Scene, data: ArrowData, group: Group) {
