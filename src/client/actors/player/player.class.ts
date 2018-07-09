@@ -6,14 +6,14 @@ import {Particle} from '../../props/particle/particle.class';
 import {SpaceShip} from '../../../shared/models';
 import {Explode} from '../../props/explosion/explosion.class';
 */
-import {Group, Scene, Sprite} from '../../game/types';
+import {Group, Scene, ArcadeSprite} from '../../game/types';
 import {Character, CharacterAnimation, PlayerCoordinates, PlayerData} from '../../../shared/models';
 import {AnimationHandler} from '../../game/animation.handler';
 import {Hud} from '../../hud/hud.class';
 import {LayerDepth} from '../../game/settings';
 
 export class Player {
-	public player: Sprite;
+	public player: ArcadeSprite;
 	public lastDirection: string = 'down';
 	public isShooting: boolean = false;
 	public health;
@@ -88,7 +88,7 @@ export class Player {
 	}
 
 	/*
-	public player: Phaser.Sprite;
+	public player: Phaser.ArcadeSprite;
 	public projectile: Projectile;
 	public controls: KeyBoardControl;
 	public playerState: Map<string, boolean | number>;

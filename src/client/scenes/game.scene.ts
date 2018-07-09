@@ -9,6 +9,7 @@ import {AnimationHandler} from '../game/animation.handler';
 import {ArrowEvent, GameEvent, PlayerEvent} from '../../shared/events.model';
 import {Arrow} from '../props/arrow.class';
 import {LayerDepth} from '../game/settings';
+import {Hearts} from '../hud/hearts.class';
 
 export class GameScene extends Phaser.Scene implements LifeCycle {
 
@@ -22,6 +23,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	private arrows: Map<string, Arrow> = new Map();
 	private ownArrows: Map<string, Arrow> = new Map();
 	private otherPlayers: Map<string, Player> = new Map();
+	private heartsDisplay: Hearts;
 
 	private cursors: CursorKeys;
 	private socket: SocketIOClient.Socket;
@@ -40,7 +42,9 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			'assets/characters/base.png',
 			{frameWidth: 64, frameHeight: 64}
 		);
-
+		this.load.spritesheet('heart',
+			'assets/heart.png',
+			{frameWidth: 32, frameHeight: 32});
 		this.load.image('tiles', 'assets/tilesets/map_base_extruded.png');
 		this.load.tilemapTiledJSON('map', 'assets/tilesets/map.json');
 	}
@@ -111,9 +115,11 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			//*
 			const camera = this.cameras.main;
 			camera.startFollow(this.player.player);
-			// camera.centerToBounds();
 			camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 			//*/
+
+			// heart display
+			this.heartsDisplay = new Hearts(this, playerData.health);
 		});
 
 		// get initial list of players
@@ -147,6 +153,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 					return;
 				}
 				this.player.health = data.health;
+				this.heartsDisplay.update(data.health);
 				if (this.player.health <= 0) {
 					this.player.animate(CharacterAnimation.DIE);
 					this.socket.emit(PlayerEvent.coordinates, {
@@ -184,6 +191,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			if (data.id === this.player.id) {
 				this.player.setCoordinates(data.x, data.y);
 				this.player.health = data.health;
+				this.heartsDisplay.update(data.health);
 				this.player.animate(CharacterAnimation.STAND_DOWN);
 			} else if (this.otherPlayers.has(data.id)) {
 				const player = this.otherPlayers.get(data.id);

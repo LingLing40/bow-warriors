@@ -1,8 +1,9 @@
-import {Group, Scene, Sprite} from '../game/types';
+import {Group, Scene, ArcadeSprite} from '../game/types';
 import {ArrowData} from '../../shared/models';
+import {LayerDepth} from '../game/settings';
 
 export class Arrow {
-	public arrow: Sprite;
+	public arrow: ArcadeSprite;
 	public id: string;
 	public readonly baseVelocity: number = 350;
 	private group: Group;
@@ -24,6 +25,7 @@ export class Arrow {
 		this.arrow.setBounce(0.05);
 		this.arrow.setCollideWorldBounds(true);
 		this.arrow.setAngle(data.angle);
+		this.arrow.setDepth(LayerDepth.ARROW);
 	}
 
 	public destroy () {
