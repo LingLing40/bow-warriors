@@ -26,6 +26,7 @@ export class Player {
 	private readonly bodySizeYOffset: number = 25;
 	private group: Group;
 	private hud: Hud;
+	private blinkTimer: Phaser.Time.TimerEvent;
 
 	constructor (scene: Scene, data: PlayerData, group?: Group) {
 		this.id = data.id;
@@ -71,12 +72,30 @@ export class Player {
 		this.updateHudCoordinates();
 	}
 
-	public updateHudCoordinates() {
+	public updateHudCoordinates (): void {
 		this.hud.setCoordinates(this);
 	}
 
 	public animate (key: CharacterAnimation | string, ignoreIfPlaying = true): void {
 		AnimationHandler.play(this, key, ignoreIfPlaying);
+	}
+
+	public blink (scene: Scene): void {
+		if (this.blinkTimer && this.blinkTimer.getOverallProgress() < 6) {
+			this.blinkTimer.remove(null);
+		}
+
+		this.player.setVisible(true);
+		this.blinkTimer = scene.time.addEvent({
+			delay: 150,
+			repeat: 5,
+			callback: this.toggleVisibility,
+			callbackScope: this
+		});
+	}
+
+	private toggleVisibility (): void {
+		this.player.setVisible(!this.player.visible);
 	}
 
 	public destroy (): void {

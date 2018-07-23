@@ -167,12 +167,15 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 					setTimeout(() => {
 						this.socket.emit(PlayerEvent.revive, this.player.id);
 					}, 3000);
+				} else {
+					this.player.blink(this);
 				}
 			} else {
 				// an other player was hit
 				if (this.otherPlayers.has(data.id)) {
 					this.otherPlayers.get(data.id).player.setVelocity(0, 0);
 					this.otherPlayers.get(data.id).health = data.health;
+					this.otherPlayers.get(data.id).blink(this);
 				}
 			}
 		});
