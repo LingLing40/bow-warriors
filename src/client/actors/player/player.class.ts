@@ -6,7 +6,7 @@ import {Particle} from '../../props/particle/particle.class';
 import {SpaceShip} from '../../../shared/models';
 import {Explode} from '../../props/explosion/explosion.class';
 */
-import {Group, Scene, ArcadeSprite, ArcadeImage} from '../../game/types';
+import {Group, Scene, ArcadeSprite, ArcadeImage, Graphics} from '../../game/types';
 import {Character, CharacterAnimation, PlayerCoordinates, PlayerData, Team} from '../../../shared/models';
 import {AnimationHandler} from '../../game/animation.handler';
 import {Hud} from '../../hud/hud.class';
@@ -30,8 +30,12 @@ export class Player {
 	private readonly hitboxBodySizeX: number = 30;
 	private readonly hitboxBodySizeY: number = 48;
 	private readonly hitboxBodySizeYOffset: number = - 20;
+	private readonly shadowSizeX: number = 30;
+	private readonly shadowSizeY: number = 8;
+	private readonly shadowOffsetY: number = 30;
 	private group: Group;
 	private hud: Hud;
+	private shadow: Graphics;
 	private blinkTimer: Phaser.Time.TimerEvent;
 
 	constructor (scene: Scene, data: PlayerData, group?: Group, hitboxGroup?: Group) {
@@ -75,6 +79,12 @@ export class Player {
 			hitboxGroup.add(this.arrowHitbox);
 		}
 
+		// draw shadow
+		this.shadow = scene.add.graphics();
+		this.shadow.setPosition(this.player.x, this.player.y + this.hitboxBodySizeY / 2)
+			.setAlpha(0.5)
+			.fillEllipse(0, 0, this.shadowSizeX, this.shadowSizeY, );
+
 		this.player.setData('id', data.id);
 		this.player.setBounce(0.2);
 		this.player.setCollideWorldBounds(true);
@@ -100,6 +110,8 @@ export class Player {
 	public updateOtherCoordinates (): void {
 		this.arrowHitbox.x = this.player.getCenter().x;
 		this.arrowHitbox.y = this.player.getCenter().y;
+		this.shadow.x = this.player.getCenter().x;
+		this.shadow.y = this.player.getCenter().y + this.shadowOffsetY;
 		this.hud.setCoordinates(this);
 	}
 

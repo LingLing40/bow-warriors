@@ -6,3 +6,4 @@ export type ArcadeImage = Phaser.Physics.Arcade.Image;
 export type Group = Phaser.Physics.Arcade.Group;
 export type Text = Phaser.GameObjects.Text;
 export type Container = Phaser.GameObjects.Container;
+export type Graphics = Phaser.GameObjects.Graphics;
