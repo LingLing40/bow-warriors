@@ -11,7 +11,7 @@ import {
 	ArrowData,
 	AuthenticationData,
 	CharacterAnimation, CoordinatesData, PlayerCoordinates,
-	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData, Team
+	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData, SetupData, Team, TeamBase
 } from '../shared/models';
 
 const express = require('express');
@@ -31,6 +31,7 @@ class GameServer {
 	// private gameHasStarted: boolean = false;
 	private players: AllPlayerData = {};
 	private arrows: AllArrowData = {};
+	private bases: TeamBase[];
 
 	private readonly baseHealth: number = 3;
 
@@ -48,10 +49,6 @@ class GameServer {
 		io.on(ServerEvent.connected, socket => {
 			console.info('connected');
 			this.attachListeners(socket);
-
-			socket.on('arrow', (id) => {
-				console.info('arrow fired', id);
-			});
 		});
 	}
 
@@ -94,27 +91,27 @@ class GameServer {
 		});
 	}
 
-	private addHitListener(socket): void {
-			socket.on(PlayerEvent.hit, (data: PlayerHitData) => {
-				const player = this.players[data.playerId];
-				if (player) {
-					player.health--;
-					if (player.health < 0) {
-						player.health = 0;
-					}
-					if (this.arrows[data.arrowId]) {
-						socket.emit(ArrowEvent.destroy, data.arrowId);
-						socket.broadcast.emit(ArrowEvent.destroy, data.arrowId);
-						delete this.arrows[data.arrowId];
-					}
-					const playerHealthData: PlayerHealthData = {
-						id: player.id,
-						health: player.health
-					};
-					socket.emit(PlayerEvent.hit, playerHealthData);
-					socket.broadcast.emit(PlayerEvent.hit, playerHealthData);
+	private addHitListener (socket): void {
+		socket.on(PlayerEvent.hit, (data: PlayerHitData) => {
+			const player = this.players[data.playerId];
+			if (player) {
+				player.health--;
+				if (player.health < 0) {
+					player.health = 0;
 				}
-			});
+				if (this.arrows[data.arrowId]) {
+					socket.emit(ArrowEvent.destroy, data.arrowId);
+					socket.broadcast.emit(ArrowEvent.destroy, data.arrowId);
+					delete this.arrows[data.arrowId];
+				}
+				const playerHealthData: PlayerHealthData = {
+					id: player.id,
+					health: player.health
+				};
+				socket.emit(PlayerEvent.hit, playerHealthData);
+				socket.broadcast.emit(PlayerEvent.hit, playerHealthData);
+			}
+		});
 	}
 
 	/*
@@ -208,17 +205,24 @@ class GameServer {
 
 	private addSignOnListener (socket): void {
 		socket.on(GameEvent.authentication, (options: AuthenticationData) => {
-			socket.emit(PlayerEvent.players, this.getAllPlayers());
-			this.createPlayer(socket, options);
-			socket.emit(PlayerEvent.protagonist, this.players[socket.id]);
-			socket.broadcast.emit(PlayerEvent.joined, this.players[socket.id]);
-			// this.gameInitialised(socket);
+
+			// make sure data for bases is available
+			if (!this.bases) {
+				socket.on(GameEvent.setup, (data: SetupData) => {
+					this.bases = data.bases;
+					this.afterSignOnSetup(socket, options);
+				});
+
+				socket.emit(GameEvent.setup);
+			} else {
+				this.afterSignOnSetup(socket, options);
+			}
 		});
 
 		socket.on(PlayerEvent.revive, (id: string) => {
 			const player = this.players[id];
 			if (player) {
-				const coors = this.generateRandomCoordinates();
+				const coors = this.getCoordinateInTeamBase(player.team);
 				player.x = coors.x;
 				player.y = coors.y;
 				player.health = this.baseHealth;
@@ -234,7 +238,15 @@ class GameServer {
 		});
 	}
 
+	private afterSignOnSetup (socket, options: AuthenticationData): void {
+		socket.emit(PlayerEvent.players, this.getAllPlayers());
+		this.createPlayer(socket, options);
+		socket.emit(PlayerEvent.protagonist, this.players[socket.id]);
+		socket.broadcast.emit(PlayerEvent.joined, this.players[socket.id]);
+	}
+
 	private createPlayer (socket, options: AuthenticationData): void {
+
 		// count team members to determine team color
 		let count = {};
 		count[Team.RED] = 0;
@@ -242,13 +254,14 @@ class GameServer {
 		for (let id in this.players) {
 			count[this.players[id].team]++;
 		}
+		const team = count[Team.RED] > count[Team.BLUE] ? Team.BLUE : Team.RED;
 
-		const coords = this.generateRandomCoordinates();
+		const coords = this.getCoordinateInTeamBase(team);
 		this.players[socket.id] = {
 			id: socket.id,
 			name: options.name,
 			character: options.character,
-			team: count[Team.RED] > count[Team.BLUE] ? Team.BLUE : Team.RED,
+			team,
 			x: coords.x,
 			y: coords.y,
 			animation: CharacterAnimation.STAND_DOWN,
@@ -256,16 +269,35 @@ class GameServer {
 		};
 	}
 
-	/*
-	private get players(): number {
-			return Object.keys(io.sockets.connected).length;
-	}
-	*/
-
 	private getAllPlayers (): PlayerData[] {
 		return Object.keys(this.players).map((id) => {
 			return this.players[id];
 		});
+	}
+
+	private getCoordinateInTeamBase (team: Team): { x: number, y: number } {
+
+		const base = this.bases.find(base => base.properties.team === team);
+
+		// limit area so that the sprite is rendered within
+		// (sprites are center-positioned in game)
+		const limitX = 20;
+		const limitY = 32;
+		const x = base.x + limitX;
+		const y = base.y;
+		const width = base.width - 2 * limitX;
+		const height = base.height - limitY;
+
+		if (base) {
+			const diffX = Math.random() * width;
+			const diffY = Math.random() * height;
+			return {
+				x: x + diffX,
+				y: y + diffY
+			};
+		} else {
+			return this.generateRandomCoordinates();
+		}
 	}
 
 	private generateRandomCoordinates (): { x: number, y: number } {

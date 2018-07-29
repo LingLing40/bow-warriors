@@ -1,8 +1,11 @@
 export class GameEvent {
 	public static authentication: string = 'authentication:successful';
-	public static end: string = 'game:over';
-	public static start: string = 'game:start';
-	public static drop: string = 'drop';
+	// public static end: string = 'game:over';
+	// public static start: string = 'game:start';
+	// public static drop: string = 'drop';
+
+	// server asks for game setup from first client (e.g. bases positions)
+	public static setup: string = 'game:setup';
 }
 
 export class CometEvent {

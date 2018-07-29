@@ -23,6 +23,27 @@ export enum CharacterAnimation {
 	DIE = 'die'
 }
 
+export interface TeamBase {
+	id: integer;
+	name: string;
+	width: number;
+	height: number;
+	x: number;
+	y: number;
+	properties: {
+		team: Team;
+	};
+	type: string; // 'base'
+}
+
+/**
+ * Setup information for server, e.g. for data
+ * that is based on the used tilemap
+ */
+export interface SetupData {
+	bases: TeamBase[];
+}
+
 /**
  * PlayerData stored on server and on clients
  */
