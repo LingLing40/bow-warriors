@@ -18,6 +18,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	private arrowsGroup: Group;
 	private ownArrowsGroup: Group;
 	private otherPlayersGroup: Group;
+	private otherPlayersHitboxGroup: Group;
 
 	// model references
 	private player: Player;
@@ -39,6 +40,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	}
 
 	preload () {
+		this.load.image('transparent', 'assets/transparent.png');
 		this.load.image('arrow', 'assets/weapons/arrow.png');
 		this.load.spritesheet(Character.DEFAULT,
 			'assets/characters/base.png',
@@ -93,6 +95,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.arrowsGroup = this.physics.add.group();
 		this.ownArrowsGroup = this.physics.add.group();
 		this.otherPlayersGroup = this.physics.add.group();
+		this.otherPlayersHitboxGroup = this.physics.add.group();
 
 		// Test with object, area has x, y, width, height
 		this.bases = map.filterObjects('Objects', obj => obj.type === 'base') as any;
@@ -110,6 +113,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// the removal of arrows by other players is handled by the server
 		this.physics.add.collider(this.ownArrowsGroup, worldLayer, this.onArrowCollision, undefined, this);
 		this.physics.add.collider(this.ownArrowsGroup, this.otherPlayersGroup, this.onHitOtherPlayer, undefined, this);
+		this.physics.add.collider(this.ownArrowsGroup, this.otherPlayersHitboxGroup, this.onHitOtherPlayer, undefined, this);
 
 		// PLAYER EVENTS
 		// get initial data for own player
@@ -158,14 +162,14 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// get initial list of players
 		this.socket.on(PlayerEvent.players, (players: PlayerData[]) => {
 			players.forEach(playerData => {
-				const otherPlayer = new Player(this, playerData, this.otherPlayersGroup);
+				const otherPlayer = new Player(this, playerData, this.otherPlayersGroup, this.otherPlayersHitboxGroup);
 				this.otherPlayers.set(playerData.id, otherPlayer);
 			})
 		});
 
 		// when a new player joins during the game
 		this.socket.on(PlayerEvent.joined, (playerData: PlayerData) => {
-			const joinedPlayer = new Player(this, playerData, this.otherPlayersGroup);
+			const joinedPlayer = new Player(this, playerData, this.otherPlayersGroup, this.otherPlayersHitboxGroup);
 			this.otherPlayers.set(playerData.id, joinedPlayer);
 		});
 
@@ -307,8 +311,8 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				this.socket.emit(ArrowEvent.coordinates, arrowCoors);
 			}
 
-			// update hud position
-			this.player.updateHudCoordinates();
+			// update hud/hitbox/shadow position
+			this.player.updateOtherCoordinates();
 
 			// do not react if player is dead
 			if (this.player.health === 0) {

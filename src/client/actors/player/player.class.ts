@@ -6,7 +6,7 @@ import {Particle} from '../../props/particle/particle.class';
 import {SpaceShip} from '../../../shared/models';
 import {Explode} from '../../props/explosion/explosion.class';
 */
-import {Group, Scene, ArcadeSprite} from '../../game/types';
+import {Group, Scene, ArcadeSprite, ArcadeImage} from '../../game/types';
 import {Character, CharacterAnimation, PlayerCoordinates, PlayerData, Team} from '../../../shared/models';
 import {AnimationHandler} from '../../game/animation.handler';
 import {Hud} from '../../hud/hud.class';
@@ -15,6 +15,7 @@ import {TeamColors} from '../../../shared/config';
 
 export class Player {
 	public player: ArcadeSprite;
+	public arrowHitbox: ArcadeImage;
 	public lastDirection: string = 'down';
 	public isShooting: boolean = false;
 	public health;
@@ -26,11 +27,14 @@ export class Player {
 	private readonly bodySizeX: number = 20;
 	private readonly bodySizeY: number = 15;
 	private readonly bodySizeYOffset: number = 25;
+	private readonly hitboxBodySizeX: number = 30;
+	private readonly hitboxBodySizeY: number = 48;
+	private readonly hitboxBodySizeYOffset: number = - 20;
 	private group: Group;
 	private hud: Hud;
 	private blinkTimer: Phaser.Time.TimerEvent;
 
-	constructor (scene: Scene, data: PlayerData, group?: Group) {
+	constructor (scene: Scene, data: PlayerData, group?: Group, hitboxGroup?: Group) {
 		this.id = data.id;
 		this.health = data.health;
 		this.character = data.character;
@@ -52,12 +56,24 @@ export class Player {
 
 		AnimationHandler.add(scene, data.character);
 
+		// add hitbox for world
 		const bodyOffsetX = (this.player.width / 2) - (this.bodySizeX / 2);
 		const bodyOffsetY = (this.player.height / 2) - (this.bodySizeY / 2) + this.bodySizeYOffset;
 
 		this.player.body
 			.setSize(this.bodySizeX, this.bodySizeY)
 			.setOffset(bodyOffsetX, bodyOffsetY);
+
+		// add hitbox for arrows
+		this.arrowHitbox = scene.physics.add.image(data.x, data.y, 'transparent');
+		this.arrowHitbox.setData('id', data.id);
+		this.arrowHitbox.body
+			.setSize(this.hitboxBodySizeX, this.hitboxBodySizeY)
+			.setOffset(- this.hitboxBodySizeX / 2, this.hitboxBodySizeYOffset);
+
+		if (hitboxGroup) {
+			hitboxGroup.add(this.arrowHitbox);
+		}
 
 		this.player.setData('id', data.id);
 		this.player.setBounce(0.2);
@@ -78,10 +94,12 @@ export class Player {
 	public setCoordinates (x: number, y: number): void {
 		this.player.x = x;
 		this.player.y = y;
-		this.updateHudCoordinates();
+		this.updateOtherCoordinates();
 	}
 
-	public updateHudCoordinates (): void {
+	public updateOtherCoordinates (): void {
+		this.arrowHitbox.x = this.player.getCenter().x;
+		this.arrowHitbox.y = this.player.getCenter().y;
 		this.hud.setCoordinates(this);
 	}
 
