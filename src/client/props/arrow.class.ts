@@ -14,7 +14,7 @@ export class Arrow {
 		this.group = group;
 		this.arrow = group.create(data.x, data.y, 'arrow');
 
-		// turn collider body for vertical direction
+		// rotate collider body for vertical direction
 		if (data.posDiffY !== 0) {
 			this.arrow.body.setSize(this.arrow.displayHeight, this.arrow.displayWidth, true);
 		}

@@ -25,8 +25,8 @@ npm start
 ## TODO
 - container as wrapper for player sprite
 - container hitbox for arrows
-- automatic team assignment & sprite tint color
+- add shadow for player in container
+- add marker for own player
 - count team points on hit and display on screen
-- let players start on their base
-- character selection before "login"
-- adjust arrow start position on shoot
+- save per player statistics (friendly fire, hits, deadly hits)
+- character selection and name input before "login"

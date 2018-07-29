@@ -10,6 +10,7 @@ import {ArrowEvent, GameEvent, PlayerEvent} from '../../shared/events.model';
 import {Arrow} from '../props/arrow.class';
 import {LayerDepth} from '../game/settings';
 import {Hearts} from '../hud/hearts.class';
+import {DEBUG} from '../../shared/config';
 
 export class GameScene extends Phaser.Scene implements LifeCycle {
 
@@ -73,20 +74,20 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
 		// debug
-		//*
-		const arrowDebugGraphics = this.add.graphics().setAlpha(0.5);
-		worldLowLayer.renderDebug(arrowDebugGraphics, {
-			tileColor: null, // Color of non-colliding tiles
-			collidingTileColor: new Phaser.Display.Color(178, 243, 3, 255), // Color of colliding tiles
-			faceColor: new Phaser.Display.Color(67, 221, 100, 255) // Color of colliding face edges
-		});
-		const debugGraphics = this.add.graphics().setAlpha(0.75);
-		worldLayer.renderDebug(debugGraphics, {
-			tileColor: null, // Color of non-colliding tiles
-			collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
-			faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
-		});
-		//*/
+		if (DEBUG) {
+			const arrowDebugGraphics = this.add.graphics().setAlpha(0.5);
+			worldLowLayer.renderDebug(arrowDebugGraphics, {
+				tileColor: null, // Color of non-colliding tiles
+				collidingTileColor: new Phaser.Display.Color(178, 243, 3, 255), // Color of colliding tiles
+				faceColor: new Phaser.Display.Color(67, 221, 100, 255) // Color of colliding face edges
+			});
+			const debugGraphics = this.add.graphics().setAlpha(0.75);
+			worldLayer.renderDebug(debugGraphics, {
+				tileColor: null, // Color of non-colliding tiles
+				collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+				faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+			});
+		}
 
 		// create sprite groups
 		this.arrowsGroup = this.physics.add.group();
@@ -94,14 +95,16 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.otherPlayersGroup = this.physics.add.group();
 
 		// Test with object, area has x, y, width, height
-		// const spawnArea = map.findObject('Objects', obj => obj.name === 'Spawn Area');
 		this.bases = map.filterObjects('Objects', obj => obj.type === 'base') as any;
 
-		this.bases.forEach(base => {
-			const g = this.add.graphics()
-				.setAlpha(0.75)
-				.fillRect(base.x, base.y, base.width, base.height);
-		});
+		// debug graphic for bases
+		if (DEBUG) {
+			this.bases.forEach(base => {
+				const g = this.add.graphics()
+					.setAlpha(0.75)
+					.fillRect(base.x, base.y, base.width, base.height);
+			});
+		}
 
 		// add collider for arrows. Only own arrows are tracked, this way
 		// the removal of arrows by other players is handled by the server
@@ -117,12 +120,14 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			worldHighLayer.setCollisionByProperty({team: teamCollider});
 
 			// debug
-			const highDebugGraphics = this.add.graphics().setAlpha(0.75);
-			worldHighLayer.renderDebug(highDebugGraphics, {
-				tileColor: null, // Color of non-colliding tiles
-				collidingTileColor: new Phaser.Display.Color(24, 134, 248, 100), // Color of colliding tiles
-				faceColor: new Phaser.Display.Color(10, 100, 200, 255) // Color of colliding face edges
-			});
+			if (DEBUG) {
+				const highDebugGraphics = this.add.graphics().setAlpha(0.75);
+				worldHighLayer.renderDebug(highDebugGraphics, {
+					tileColor: null, // Color of non-colliding tiles
+					collidingTileColor: new Phaser.Display.Color(24, 134, 248, 100), // Color of colliding tiles
+					faceColor: new Phaser.Display.Color(10, 100, 200, 255) // Color of colliding face edges
+				});
+			}
 
 			this.player = new Player(this, playerData);
 			this.physics.add.collider(this.player.player, worldLayer);
@@ -131,8 +136,6 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			// special colliders according to team color
 			this.physics.add.collider(this.player.player, worldHighLayer);
 			this.physics.add.collider(this.ownArrowsGroup, worldHighLayer, this.onArrowCollision, undefined, this);
-			// this.physics.add.collider(this.player.player, platforms);
-			// this.physics.add.collider(this.player.player, this.arrowsGroup, this.onHitOtherPlayer, undefined, this);
 
 			// camera
 			//*
@@ -346,8 +349,8 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 							posDiffY = 1;
 					}
 
-					const arrowX = this.player.player.x + posDiffX * this.player.player.displayHeight / 2;
-					const arrowY = this.player.player.y + posDiffY * this.player.player.displayHeight / 2;
+					const arrowX = this.player.player.x;
+					const arrowY = this.player.player.y;
 
 					const arrowData: ArrowData = {
 						id: null, // set by server
@@ -444,12 +447,6 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				animation
 			};
 			this.socket.emit(PlayerEvent.coordinates, coors);
-
-			/*
-			if (this.cursors.up.isDown && this.player.body.touching.down) {
-					this.player.setVelocityY(-330);
-			}
-			*/
 		}
 	}
 

@@ -1,4 +1,5 @@
 import {GameScene} from '../scenes/game.scene';
+import {DEBUG} from '../../shared/config';
 
 export class Game {
 	game: Phaser.Game;
@@ -13,7 +14,7 @@ export class Game {
 				default: 'arcade',
 				arcade: {
 					gravity: {y: 0},
-					debug: true
+					debug: DEBUG
 				}
 			},
 			scene: [
