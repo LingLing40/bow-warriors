@@ -11,7 +11,7 @@ import {
 	ArrowData,
 	AuthenticationData,
 	CharacterAnimation, CoordinatesData, PlayerCoordinates,
-	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData
+	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData, Team
 } from '../shared/models';
 
 const express = require('express');
@@ -235,11 +235,20 @@ class GameServer {
 	}
 
 	private createPlayer (socket, options: AuthenticationData): void {
+		// count team members to determine team color
+		let count = {};
+		count[Team.RED] = 0;
+		count[Team.BLUE] = 0;
+		for (let id in this.players) {
+			count[this.players[id].team]++;
+		}
+
 		const coords = this.generateRandomCoordinates();
 		this.players[socket.id] = {
 			id: socket.id,
 			name: options.name,
 			character: options.character,
+			team: count[Team.RED] > count[Team.BLUE] ? Team.BLUE : Team.RED,
 			x: coords.x,
 			y: coords.y,
 			animation: CharacterAnimation.STAND_DOWN,

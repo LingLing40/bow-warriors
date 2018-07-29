@@ -7,10 +7,11 @@ import {SpaceShip} from '../../../shared/models';
 import {Explode} from '../../props/explosion/explosion.class';
 */
 import {Group, Scene, ArcadeSprite} from '../../game/types';
-import {Character, CharacterAnimation, PlayerCoordinates, PlayerData} from '../../../shared/models';
+import {Character, CharacterAnimation, PlayerCoordinates, PlayerData, Team} from '../../../shared/models';
 import {AnimationHandler} from '../../game/animation.handler';
 import {Hud} from '../../hud/hud.class';
 import {LayerDepth} from '../../game/settings';
+import {TeamColors} from '../../../shared/config';
 
 export class Player {
 	public player: ArcadeSprite;
@@ -18,6 +19,7 @@ export class Player {
 	public isShooting: boolean = false;
 	public health;
 	public character: Character;
+	public team: Team;
 	public id: string;
 	public name: string;
 	public readonly baseVelocity: number = 150;
@@ -33,12 +35,19 @@ export class Player {
 		this.health = data.health;
 		this.character = data.character;
 		this.name = data.name;
+		this.team = data.team;
 
 		if (group) {
 			this.player = group.create(data.x, data.y, data.character);
 			this.group = group;
 		} else {
 			this.player = scene.physics.add.sprite(data.x, data.y, data.character);
+		}
+
+		// set player color tint
+		const colorTint = TeamColors[this.team];
+		if (colorTint) {
+			this.player.setTint(colorTint);
 		}
 
 		AnimationHandler.add(scene, data.character);

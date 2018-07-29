@@ -1,6 +1,7 @@
 import {Group, Scene, ArcadeSprite} from '../game/types';
 import {ArrowData} from '../../shared/models';
 import {LayerDepth} from '../game/settings';
+import {TeamColors} from '../../shared/config';
 
 export class Arrow {
 	public arrow: ArcadeSprite;
@@ -16,6 +17,12 @@ export class Arrow {
 		// turn collider body for vertical direction
 		if (data.posDiffY !== 0) {
 			this.arrow.body.setSize(this.arrow.displayHeight, this.arrow.displayWidth, true);
+		}
+
+		// set player color tint
+		const colorTint = TeamColors[data.team];
+		if (colorTint) {
+			this.arrow.setTint(colorTint);
 		}
 
 		this.arrow.x += data.posDiffX * (this.arrow.width / 2);

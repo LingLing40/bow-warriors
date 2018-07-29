@@ -22,3 +22,11 @@ Once you have forked or downloaded this repo you can start it with the following
 npm start
 ```
 
+## TODO
+- container as wrapper for player sprite
+- container hitbox for arrows
+- automatic team assignment & sprite tint color
+- count team points on hit and display on screen
+- let players start on their base
+- character selection before "login"
+- adjust arrow start position on shoot

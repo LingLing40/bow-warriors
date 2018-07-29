@@ -1,3 +1,8 @@
+export enum Team {
+	BLUE = 'blue',
+	RED = 'red'
+}
+
 export enum Character {
 	DEFAULT = 'dude'
 }
@@ -25,6 +30,7 @@ export interface PlayerData {
 	id: string;
 	name: string;
 	character: Character;
+	team: Team;
 	x: number;
 	y: number;
 	animation: CharacterAnimation;
@@ -52,6 +58,7 @@ export interface AuthenticationData {
 export interface ArrowData {
 	id: string;
 	playerId: string;
+	team: Team;
 	x: number;
 	y: number;
 	posDiffX: number;

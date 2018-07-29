@@ -3,7 +3,7 @@ import {Group, GameObject} from '../game/types';
 import {Player} from '../actors/player/player.class';
 import {
 	ArrowData, Character, CharacterAnimation, CoordinatesData, PlayerCoordinates, PlayerData, PlayerHealthData, PlayerHitData,
-	PlayerReviveData
+	PlayerReviveData, Team
 } from '../../shared/models';
 import {AnimationHandler} from '../game/animation.handler';
 import {ArrowEvent, GameEvent, PlayerEvent} from '../../shared/events.model';
@@ -27,6 +27,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 
 	private cursors: CursorKeys;
 	private socket: SocketIOClient.Socket;
+	private bases: GameObject[];
 
 	constructor () {
 		super({
@@ -63,6 +64,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		const belowLayer = map.createStaticLayer('below_player', tileset, 0, 0);
 		const worldLowLayer = map.createStaticLayer('world_low', tileset, 0, 0);
 		const worldLayer = map.createStaticLayer('world', tileset, 0, 0);
+		const worldHighLayer = map.createStaticLayer('world_high', tileset, 0, 0);
 		const aboveLayer = map.createStaticLayer('above_player', tileset, 0, 0);
 
 		worldLowLayer.setCollisionByProperty({ collides: true });
@@ -93,6 +95,10 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 
 		// Test with object, area has x, y, width, height
 		// const spawnArea = map.findObject('Objects', obj => obj.name === 'Spawn Area');
+		this.bases = map.filterObjects('Objects', obj => {
+			console.info(obj);
+			return obj.type === 'base'
+		});
 
 		// add collider for arrows. Only own arrows are tracked, this way
 		// the removal of arrows by other players is handled by the server
@@ -105,9 +111,26 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// PLAYER EVENTS
 		// get initial data for own player
 		this.socket.on(PlayerEvent.protagonist, (playerData: PlayerData) => {
+
+			// set collision by team of player
+			const teamCollider = playerData.team === Team.BLUE ? Team.RED : Team.BLUE;
+			worldHighLayer.setCollisionByProperty({ team: teamCollider });
+
+			// debug
+			const highDebugGraphics = this.add.graphics().setAlpha(0.75);
+			worldHighLayer.renderDebug(highDebugGraphics, {
+				tileColor: null, // Color of non-colliding tiles
+				collidingTileColor: new Phaser.Display.Color(24, 134, 248, 100), // Color of colliding tiles
+				faceColor: new Phaser.Display.Color(10, 100, 200, 255) // Color of colliding face edges
+			});
+
 			this.player = new Player(this, playerData);
 			this.physics.add.collider(this.player.player, worldLayer);
 			this.physics.add.collider(this.player.player, worldLowLayer);
+
+			// special colliders according to team color
+			this.physics.add.collider(this.player.player, worldHighLayer);
+			this.physics.add.collider(this.ownArrowsGroup, worldHighLayer, this.onArrowCollision, undefined, this);
 			// this.physics.add.collider(this.player.player, platforms);
 			// this.physics.add.collider(this.player.player, this.arrowsGroup, this.onHitOtherPlayer, undefined, this);
 
@@ -322,6 +345,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 					const arrowData: ArrowData = {
 						id: null, // set by server
 						playerId: this.player.id,
+						team: this.player.team,
 						x: arrowX,
 						y: arrowY,
 						posDiffX,
