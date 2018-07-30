@@ -23,9 +23,6 @@ npm start
 ```
 
 ## TODO
-- container as wrapper for player sprite
-- container hitbox for arrows
-- add shadow for player in container
 - add marker for own player
 - count team points on hit and display on screen
 - save per player statistics (friendly fire, hits, deadly hits)

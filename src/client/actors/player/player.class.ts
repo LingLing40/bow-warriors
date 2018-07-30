@@ -143,6 +143,9 @@ export class Player {
 		} else {
 			this.player.destroy();
 		}
+		this.hud.destroy();
+		this.shadow.destroy();
+		this.arrowHitbox.destroy();
 	}
 
 	/*

@@ -21,8 +21,14 @@ export class Hud {
 	}
 
 	public setCoordinates (player: Player): void {
-		const center: Phaser.Math.Vector2 = player.player.getCenter();
-		this.name.x = center.x;
-		this.name.y = center.y + player.player.height / 2;
+		if (this.name) {
+			const center: Phaser.Math.Vector2 = player.player.getCenter();
+			this.name.x = center.x;
+			this.name.y = center.y + player.player.height / 2;
+		}
+	}
+
+	public destroy() {
+		this.name.destroy();
 	}
 }
