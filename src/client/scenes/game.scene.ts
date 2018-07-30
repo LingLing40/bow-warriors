@@ -42,15 +42,19 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	preload () {
 		this.load.image('transparent', 'assets/transparent.png');
 		this.load.image('arrow', 'assets/weapons/arrow.png');
-		this.load.spritesheet(Character.DEFAULT,
-			'assets/characters/base.png',
-			{frameWidth: 64, frameHeight: 64}
-		);
+		this.load.image('tiles', 'assets/tilesets/map_base_extruded.png');
+		this.load.tilemapTiledJSON('map', 'assets/tilesets/map.json');
 		this.load.spritesheet('heart',
 			'assets/heart.png',
 			{frameWidth: 32, frameHeight: 32});
-		this.load.image('tiles', 'assets/tilesets/map_base_extruded.png');
-		this.load.tilemapTiledJSON('map', 'assets/tilesets/map.json');
+
+		// load graphics for characters
+		for (let character in Character) {
+			this.load.spritesheet(Character[character],
+				`assets/characters/${Character[character]}.png`,
+				{frameWidth: 64, frameHeight: 64}
+			);
+		}
 	}
 
 	create () {
@@ -276,13 +280,6 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				this.ownArrows.delete(arrowId);
 			}
 		});
-
-		// request own player from server
-		this.socket.emit(GameEvent.authentication,
-			{
-				name: this.socket.id,
-				character: Character.DEFAULT
-			});
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 	}

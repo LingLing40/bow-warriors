@@ -14,7 +14,7 @@ export class Hud {
 			align: 'center'
 		};
 
-		this.name = scene.add.text(0, 0, player.name.substring(0, 6), this.style);
+		this.name = scene.add.text(0, 0, player.name.substring(0, 12), this.style);
 		this.name.setOrigin(0.5, 0);
 		this.name.setDepth(LayerDepth.HUD);
 		this.setCoordinates(player);

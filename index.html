@@ -8,7 +8,26 @@
 </head>
 
 <body>
+<div class="login-screen">
+    <label>
+        Your name (max. 12 characters):
+        <input id="login-name" placeholder="Adventurer" maxlength="12">
+    </label>
 
+    <div id="login-characters"></div>
+    <!--
+    <label>
+        <input type="radio" name="login-character" value="dude">
+        Dude
+    </label>
+    <label>
+        <input type="radio" name="login-character" value="princess">
+        Princess
+    </label>
+    -->
+
+    <button id="login-button">Join Game</button>
+</div>
 
 <script src="dist/socket.io.js"></script>
 <script src="dist/bundle.js" async></script>

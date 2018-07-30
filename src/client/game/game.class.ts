@@ -1,8 +1,13 @@
 import {GameScene} from '../scenes/game.scene';
 import {DEBUG} from '../../shared/config';
+import {Character} from '../../shared/models';
+import {GameEvent} from '../../shared/events.model';
+import {LoginScene} from '../scenes/login';
 
 export class Game {
-	game: Phaser.Game;
+
+	private game: Phaser.Game;
+	private login: LoginScene;
 
 	constructor () {
 		const config: GameConfig = {
@@ -23,6 +28,18 @@ export class Game {
 		};
 
 		this.game = new Phaser.Game(config);
+
+		this.login = new LoginScene(this);
+	}
+
+	public authenticate (name: string, character: Character) {
+		const scene = this.game.scene.keys['GameScene'];
+		if (scene && scene.socket) {
+			scene.socket.emit(GameEvent.authentication, {
+				name,
+				character
+			});
+		}
 	}
 }
 

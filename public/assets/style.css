@@ -1,11 +1,9 @@
 body {
-    /* overflow: hidden; */
     margin: 0;
     background: skyblue;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* background: url('galaxy.jpg'); */
     background-size: cover;
     height: 100vh;
 }
@@ -15,10 +13,28 @@ canvas {
     height: auto;
 }
 
-.visible {
+/**
+ * LOGIN
+ */
+.login-screen {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    min-height: 100vh;
+    background-color: antiquewhite;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.hide {
     display: none;
 }
 
+/*
 .login-page {
     width: 360px;
     padding: 8% 0 0;
@@ -106,10 +122,10 @@ canvas {
 }
 
 .form-container {
-    background: linear-gradient(to top, #C6426E, #642B73); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     position: absolute;
     height: 100%;
     width: 100%;
 }
+*/
