@@ -11,6 +11,7 @@ import {Arrow} from '../props/arrow.class';
 import {LayerDepth} from '../game/settings';
 import {Hearts} from '../hud/hearts.class';
 import {DEBUG} from '../../shared/config';
+import {VirtualJoyStick} from '../controls/joystick.class';
 
 export class GameScene extends Phaser.Scene implements LifeCycle {
 
@@ -28,8 +29,12 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	private heartsDisplay: Hearts;
 
 	private cursors: CursorKeys;
+	private joyStick: VirtualJoyStick;
+	private joyStickCursors: CursorKeys;
 	private socket: SocketIOClient.Socket;
 	private bases: TeamBase[];
+
+	private text;
 
 	constructor () {
 		super({
@@ -281,18 +286,52 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			}
 		});
 
+		if (DEBUG) {
+			this.text = this.add.text(0, 0, '');
+			this.text.setScrollFactor(0)
+				.setDepth(1000);
+		}
+
+		this.joyStick = new VirtualJoyStick(this, {
+			x: 100,
+			y: this.sys.game.config.height as integer - 100,
+			radius: 70,
+			// base: 'joystick_bg',
+			// thumb: 'joystick_pin',
+			depth: LayerDepth.JOYSTICK,
+			// base: this.add.graphics().fillStyle(0x888888).fillCircle(0, 0, 100),
+			// thumb: this.add.graphics().fillStyle(0xcccccc).fillCircle(0, 0, 50),
+			// dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
+			// forceMin: 16,
+			enable: false
+		});
+		this.joyStick.setVisible(false);
+		// this.joyStick.touchCursor.events.on('update', this.dumpJoyStickState, this);
+		// this.dumpJoyStickState();
+
 		this.cursors = this.input.keyboard.createCursorKeys();
+		this.joyStickCursors = this.joyStick.createCursorKeys();
 	}
 
 	update (time: number, delta: number) {
 
 		if (this.player
 			&& this.cursors
+			&& this.joyStickCursors
 			&& this.cursors.space
 			&& this.cursors.up
 			&& this.cursors.down
 			&& this.cursors.left
 			&& this.cursors.right) {
+
+			// abstract cursors for equal handling of joystick and keyboard
+			let input = this.cursors;
+			if ((window as any).USER_IS_TOUCHING) {
+				this.joyStick.setEnable(true);
+				this.joyStick.setVisible(true);
+				input = this.joyStickCursors;
+				input.space = this.cursors.space;
+			}
 
 			let animation: string = null;
 
@@ -317,7 +356,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			}
 
 			// trigger start of shoot animation
-			if (this.cursors.space.isDown) {
+			if (input.space.isDown) {
 				this.player.isShooting = true;
 				animation = `shoot_${this.player.lastDirection}`;
 				this.player.player.setVelocity(0, 0);
@@ -385,34 +424,34 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			const now = Date.now();
 			const tolerance = 1000;
 
-			if (this.cursors.up.isDown) {
+			if (input.up.isDown) {
 				this.player.lastDirection = 'up';
 				this.player.player.setVelocityY(-1 * this.player.baseVelocity);
-			} else if (this.cursors.down.isDown) {
+			} else if (input.down.isDown) {
 				this.player.lastDirection = 'down';
 				this.player.player.setVelocityY(this.player.baseVelocity);
-			} else if (now - this.cursors.down.timeUp > tolerance
-				&& now - this.cursors.down.timeUp > tolerance) {
+			} else if (now - input.down.timeUp > tolerance
+				&& now - input.down.timeUp > tolerance) {
 				this.player.player.setVelocityY(0);
 			}
 
-			if (this.cursors.left.isDown) {
+			if (input.left.isDown) {
 				this.player.lastDirection = 'left';
 				this.player.player.setVelocityX(-1 * this.player.baseVelocity);
-			} else if (this.cursors.right.isDown) {
+			} else if (input.right.isDown) {
 				this.player.lastDirection = 'right';
 				this.player.player.setVelocityX(this.player.baseVelocity);
-			} else if (now - this.cursors.left.timeUp > tolerance
-				&& now - this.cursors.right.timeUp > tolerance) {
+			} else if (now - input.left.timeUp > tolerance
+				&& now - input.right.timeUp > tolerance) {
 				this.player.player.setVelocityX(0);
 			}
 
 			// Normalize and scale the velocity so that player can't move faster along a diagonal
 			this.player.player.body.velocity.normalize().scale(this.player.baseVelocity);
 
-			if (this.cursors.space.isDown
-				|| now - this.cursors.space.timeDown < 500
-				|| now - this.cursors.space.timeUp < 500) {
+			if (input.space.isDown
+				|| now - input.space.timeDown < 500
+				|| now - input.space.timeUp < 500) {
 
 				// shoot if space is pressed
 				this.player.isShooting = true;
@@ -429,10 +468,10 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				animation = this.player.lastDirection;
 
 				// stand if no cursors are active
-				if (this.cursors.up.isUp
-					&& this.cursors.down.isUp
-					&& this.cursors.left.isUp
-					&& this.cursors.right.isUp) {
+				if (input.up.isUp
+					&& input.down.isUp
+					&& input.left.isUp
+					&& input.right.isUp) {
 					this.player.player.setVelocity(0, 0);
 					animation = `stand_${this.player.lastDirection}`;
 				}
@@ -466,5 +505,22 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		setTimeout(() => {
 			this.socket.emit(ArrowEvent.destroy, arrow.getData('id'));
 		}, 300);
+	}
+
+	private dumpJoyStickState () {
+		if (!this.joyStick) {
+			return;
+		}
+		const cursorKeys = this.joyStick.createCursorKeys();
+		let s = 'Key down: ';
+		for (let name in cursorKeys) {
+			if (cursorKeys[name].isDown) {
+				s += name + ' ';
+			}
+		}
+		s += '\n';
+		s += ('Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n');
+		s += ('Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n');
+		this.text.setText(s);
 	}
 }

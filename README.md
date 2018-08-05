@@ -26,5 +26,5 @@ npm start
 - add marker for own player
 - count team points on hit and display on screen
 - save per player statistics (friendly fire, hits, deadly hits)
-- character selection and name input before "login"
-- joystick for use on mobile/touch devices
+- design for login screen
+- shoot button for mobile devices
