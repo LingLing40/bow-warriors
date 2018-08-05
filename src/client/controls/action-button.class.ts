@@ -64,7 +64,7 @@ export class ActionButton {
 	}
 
 	public setEnable (enable: boolean) {
-		this.button.setVisible(true);
+		this.button.setVisible(enable);
 		this.key.enabled = enable;
 
 		if (!enable) {
