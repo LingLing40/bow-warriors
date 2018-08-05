@@ -35,6 +35,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	private shootButton: ActionButton;
 	private socket: SocketIOClient.Socket;
 	private bases: TeamBase[];
+	private hasTouch: boolean;
 
 	private text;
 
@@ -212,9 +213,9 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 					} as PlayerCoordinates);
 
 					// set revive countdown
-					setTimeout(() => {
+					this.time.delayedCall(3000, () => {
 						this.socket.emit(PlayerEvent.revive, this.player.id);
-					}, 3000);
+					}, [], this);
 				} else {
 					this.player.blink(this);
 				}
@@ -322,6 +323,19 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 
 		this.cursors = this.input.keyboard.createCursorKeys();
 		this.joyStickCursors = this.joyStick.createCursorKeys();
+
+		// add touch detection
+		// https://codeburst.io/the-only-way-to-detect-touch-with-javascript-7791a3346685
+		window.addEventListener('touchstart', function onFirstTouch () {
+
+			this.joyStick.setEnable(true);
+			this.joyStick.setVisible(true);
+			this.shootButton.setEnable(true);
+			this.hasTouch = true;
+
+			// we only need to know once that a human touched the screen, so we can stop listening now
+			window.removeEventListener('touchstart', onFirstTouch, false);
+		}.bind(this), false);
 	}
 
 	update (time: number, delta: number) {
@@ -342,11 +356,9 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 
 			// abstract cursors for equal handling of joystick and keyboard
 			let input = this.cursors;
-			if ((window as any).USER_IS_TOUCHING) {
-				this.joyStick.setEnable(true);
-				this.joyStick.setVisible(true);
+			if (this.hasTouch) {
 				input = this.joyStickCursors;
-				input.space = this.cursors.space;
+				input.space = this.shootButton.key;
 			}
 
 			let animation: string = null;
@@ -357,7 +369,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 					id: arrow.id,
 					x: arrow.arrow.x,
 					y: arrow.arrow.y
-				} as CoordinatesData;
+				};
 			});
 			if (arrowCoors.length > 0) {
 				this.socket.emit(ArrowEvent.coordinates, arrowCoors);
@@ -518,9 +530,9 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	}
 
 	private onArrowCollision (arrow: GameObject, object: GameObject) {
-		setTimeout(() => {
+		this.time.delayedCall(300, () => {
 			this.socket.emit(ArrowEvent.destroy, arrow.getData('id'));
-		}, 300);
+		}, [], this);
 	}
 
 	private logPointers () {

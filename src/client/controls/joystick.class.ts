@@ -1,8 +1,7 @@
 import TouchCursor from './touch-cursor.class';
 import {Scene} from '../game/types';
 
-// tslint:disable-next-line
-const GetValue = Phaser.Utils.Objects.GetValue;
+const GetValue = (Phaser.Utils as any).Objects.GetValue;
 
 /**
  * Code copied and adjusted from: phaser3-rex-plugins

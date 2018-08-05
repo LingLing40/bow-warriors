@@ -1,7 +1,6 @@
 import KeyCodes = Phaser.Input.Keyboard.KeyCodes;
 
-// tslint:disable-next-line
-const GetValue = Phaser.Utils.Objects.GetValue;
+const GetValue = (Phaser.Utils as any).Objects.GetValue;
 const Key = Phaser.Input.Keyboard.Key;
 const GetDist = Phaser.Math.Distance.Between;
 const GetAngle = Phaser.Math.Angle.Between;

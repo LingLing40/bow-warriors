@@ -1,8 +1,7 @@
 import VectorToCursorKeys from './vector-to-cursor-keys.class';
 
 const EE = Phaser.Events.EventEmitter;
-// tslint:disable-next-line
-const GetValue = Phaser.Utils.Objects.GetValue;
+const GetValue = (Phaser.Utils as any).Objects.GetValue;
 const Geom = Phaser.Geom;
 
 /**

@@ -65,14 +65,16 @@ export class Game {
 			clientHeight = w.innerHeight || e.clientHeight || g.clientHeight;
 		const max1 = 1080;
 		const max2 = 600;
+		// add tolerance for UI elements on mobile browsers
+		const tolerance = 50;
 		let width, height;
 
 		if (clientWidth > clientHeight) {
-			width = Math.min(clientWidth, max1);
-			height = Math.min(clientHeight, max2);
+			width = Math.min(clientWidth - tolerance, max1);
+			height = Math.min(clientHeight - tolerance, max2);
 		} else {
-			width = Math.min(clientWidth, max2);
-			height = Math.min(clientHeight, max1);
+			width = Math.min(clientWidth - tolerance, max2);
+			height = Math.min(clientHeight - tolerance, max1);
 		}
 
 		return {

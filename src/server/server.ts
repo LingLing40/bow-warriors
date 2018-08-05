@@ -46,7 +46,7 @@ class GameServer {
 
 	private socketEvents (): void {
 		io.on(ServerEvent.connected, socket => {
-			console.info('connected');
+			console.info('New client connected:', socket.id);
 			this.attachListeners(socket);
 		});
 	}
@@ -125,6 +125,7 @@ class GameServer {
 
 	private addSignOutListener (socket): void {
 		socket.on(ServerEvent.disconnected, () => {
+			console.info('Client disconnected:', socket.id);
 			if (this.players[socket.id]) {
 				socket.broadcast.emit(PlayerEvent.quit, socket.id);
 				delete this.players[socket.id];
