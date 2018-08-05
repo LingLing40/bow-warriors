@@ -1,25 +1,15 @@
-# Multiplayer Phaser Game
+# Bow Warrior
+A browser-based realtime multiplayer game. Choose your character and hit others with arrows to earn points for your team!
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b1f5cc255c5f40b4a1dcc6f0431447a5)](https://www.codacy.com/app/o.lodriguez/Multiplayer-Phaser-game?utm_source=github.com&utm_medium=referral&utm_content=code0wl/Multiplayer-Phaser-game&utm_campaign=badger)
-[![Build Status](https://travis-ci.org/code0wl/Multiplayer-Phaser-game.svg?branch=develop)](https://travis-ci.org/code0wl/Multiplayer-Phaser-game)
-
-[![Leanpub book](https://github.com/code0wl/Multiplayer-Phaser-game/blob/develop/public/assets/book-template.png?raw=true)](https://leanpub.com/buildmultiplayergame)
-
-# Use great technologies
-
-Such as TypeScript, Phaser and socket.io to create a fun little multiplayer 
-game that can entertain you and your friends for a minute or two.
-
-You will learn to animate sprites, work with physics, and develop logic to 
-create a modern multiplayer spaceship shooter!
-
-[The book is found here on LeanPub](https://leanpub.com/buildmultiplayergame)
-
-Once you have forked or downloaded this repo you can start it with the following command
+Built on Phaser 3 game engine, Socket.IO for realtime server communication, and TypeScript.
 
 ## How to run
 ```bash
 npm start
+```
+or
+```bash
+npm run start:dev
 ```
 
 ## TODO
@@ -28,3 +18,28 @@ npm start
 - save per player statistics (friendly fire, hits, deadly hits)
 - design for login screen
 - shoot button for mobile devices
+
+## Attributions
+Graphics, tutorials, code bits and other resources used to develop this game.
+
+Original Template: Multiplayer Phaser Game
+
+Liberated Pixel Cup (LPC)
+
+
+## Other resources
+More useful resources to create games similar to Bow Warrior.
+
+### Tutorials
+Basic example on how to set up Phaser with Socket.IO
+https://gamedevacademy.org/create-a-basic-multiplayer-game-in-phaser-3-with-socket-io-part-1/
+
+### Tilemaps
+Tiled – editor for Tilemaps
+
+### Joystick plugin
+https://github.com/rexrainbow/phaser3-rex-notes
+https://rexrainbow.github.io/phaser3-rex-notes/docs/site/virtualjoystick/index.html
+
+Touch detection
+https://codeburst.io/the-only-way-to-detect-touch-with-javascript-7791a3346685

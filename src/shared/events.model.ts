@@ -1,18 +1,9 @@
 export class GameEvent {
+	// send server initial data for clients player
 	public static authentication: string = 'authentication:successful';
-	// public static end: string = 'game:over';
-	// public static start: string = 'game:start';
-	// public static drop: string = 'drop';
 
 	// server asks for game setup from first client (e.g. bases positions)
 	public static setup: string = 'game:setup';
-}
-
-export class CometEvent {
-	public static create: string = 'comet:create';
-	public static destroy: string = 'comet:destroy';
-	public static hit: string = 'comet:hit';
-	public static coordinates: string = 'comet:coordinates';
 }
 
 export class ServerEvent {

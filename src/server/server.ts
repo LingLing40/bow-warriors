@@ -1,6 +1,5 @@
 import {
 	ArrowEvent,
-	// CometEvent,
 	GameEvent,
 	PlayerEvent,
 	ServerEvent
@@ -58,8 +57,6 @@ class GameServer {
 		this.addSignOutListener(socket);
 		this.addArrowListeners(socket);
 		this.addHitListener(socket);
-		// this.addCometHitListener(socket);
-		// this.addPickupListener(socket);
 	}
 
 	private addArrowListeners (socket): void {
@@ -113,74 +110,6 @@ class GameServer {
 			}
 		});
 	}
-
-	/*
-	private updateComet(socket) {
-			if (this.hasComet) {
-					let asteroidCoordinates = this.generateRandomCoordinates();
-					asteroidCoordinates.y = -128;
-					const update = setInterval(() => {
-							asteroidCoordinates.y += 1;
-							asteroidCoordinates.x -= 1;
-							socket.emit(CometEvent.coordinates, asteroidCoordinates);
-							socket.broadcast.emit(CometEvent.coordinates, asteroidCoordinates);
-							this.destroyComet(asteroidCoordinates, socket, update)
-					}, 25);
-			}
-	}
-
-	private destroyComet(asteroidCoordinates, socket, update): void {
-			if (asteroidCoordinates.x < -128) {
-					socket.emit(CometEvent.destroy);
-					socket.broadcast.emit(CometEvent.destroy);
-					this.hasComet = false;
-					global.clearInterval(update);
-			}
-	}
-
-	private addCometHitListener(socket): void {
-			socket.on(CometEvent.hit, (playerId) => {
-					socket.broadcast.emit(CometEvent.hit, playerId);
-			});
-	}
-
-	private gameInitialised(socket): void {
-			if (!this.gameHasStarted) {
-					this.gameHasStarted = true;
-					this.createComet(socket, 1000);
-					this.calcPickupCoordinates(socket, 5000);
-			}
-	}
-
-	private calcPickupCoordinates(socket, interval: number) {
-			setInterval(() => {
-					const coordinates = this.generateRandomCoordinates();
-					socket.emit(GameEvent.drop, coordinates);
-					socket.broadcast.emit(GameEvent.drop, coordinates);
-			}, interval);
-	}
-
-	private createComet(socket, interval: number) {
-			setInterval(() => {
-					if (!this.hasComet) {
-							socket.comet = {
-									id: uuid()
-							};
-							this.hasComet = true;
-							socket.emit(CometEvent.create, socket.comet);
-							socket.broadcast.emit(CometEvent.create, socket.comet);
-							this.updateComet(socket);
-					}
-			}, interval);
-	}
-
-	private addPickupListener(socket): void {
-			socket.on(PlayerEvent.pickup, (player) => {
-					socket.player.ammo = player.ammo;
-					socket.broadcast.emit(PlayerEvent.pickup, player.uuid);
-			});
-	}
-	*/
 
 	private addMovementListener (socket): void {
 		socket.on(PlayerEvent.coordinates, (data: PlayerCoordinates) => {
@@ -306,12 +235,6 @@ class GameServer {
 			y: Math.floor(Math.random() * 600) + 1
 		};
 	}
-
-	/*
-	private randomInt (low, high): number {
-		return Math.floor(Math.random() * (high - low) + low);
-	}
-	*/
 }
 
 const gameSession = new GameServer();
