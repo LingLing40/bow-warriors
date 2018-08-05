@@ -26,6 +26,9 @@ export class Game {
 					debug: DEBUG
 				}
 			},
+			input: {
+				activePointers: 2
+			},
 			scene: [
 				GameScene
 			]

@@ -12,6 +12,7 @@ import {LayerDepth} from '../game/settings';
 import {Hearts} from '../hud/hearts.class';
 import {DEBUG} from '../../shared/config';
 import {VirtualJoyStick} from '../controls/joystick.class';
+import {ActionButton} from '../controls/action-button.class';
 
 export class GameScene extends Phaser.Scene implements LifeCycle {
 
@@ -31,6 +32,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	private cursors: CursorKeys;
 	private joyStick: VirtualJoyStick;
 	private joyStickCursors: CursorKeys;
+	private shootButton: ActionButton;
 	private socket: SocketIOClient.Socket;
 	private bases: TeamBase[];
 
@@ -292,6 +294,15 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				.setDepth(1000);
 		}
 
+		// shoot button
+		const shootButtonX = this.sys.game.config.width as integer - ActionButton.buttonSize - 30;
+		const shootButtonY = this.sys.game.config.height as integer - ActionButton.buttonSize - 30;
+		this.shootButton = new ActionButton(this, shootButtonX, shootButtonY, 'SHOOT');
+		this.shootButton.setEnable(false);
+		// add additional pointer for actionButton
+		this.input.addPointer(1);
+
+		// joystick control
 		this.joyStick = new VirtualJoyStick(this, {
 			x: 100,
 			y: this.sys.game.config.height as integer - 100,
@@ -323,6 +334,11 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			&& this.cursors.down
 			&& this.cursors.left
 			&& this.cursors.right) {
+
+			if (DEBUG) {
+				this.text.setText('');
+				this.logPointers();
+			}
 
 			// abstract cursors for equal handling of joystick and keyboard
 			let input = this.cursors;
@@ -366,6 +382,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			if (this.player.player.anims.currentAnim && AnimationHandler.getCurrent(this.player).substr(0, 5) === 'shoot') {
 				if (this.player.player.anims.currentFrame.isLast) {
 					this.player.isShooting = false;
+					this.player.player.anims.setProgress(0);
 
 					// determine arrow direction
 					let angle = 0;
@@ -420,7 +437,6 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				return;
 			}
 
-			// TODO use time parameter?
 			const now = Date.now();
 			const tolerance = 1000;
 
@@ -450,13 +466,13 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			this.player.player.body.velocity.normalize().scale(this.player.baseVelocity);
 
 			if (input.space.isDown
-				|| now - input.space.timeDown < 500
-				|| now - input.space.timeUp < 500) {
+			/*|| now - input.space.timeDown < AnimationHandler.shootDuration
+			|| now - input.space.timeUp < AnimationHandler.shootDuration */) {
 
 				// shoot if space is pressed
 				this.player.isShooting = true;
-				const progress = this.player.player.anims.getProgress();
-				if (progress === 1) {
+				const currentFrame = this.player.player.anims.currentFrame;
+				if (currentFrame && currentFrame.isLast) {
 					this.player.isShooting = false;
 				}
 				if (this.player.isShooting) {
@@ -507,12 +523,20 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		}, 300);
 	}
 
+	private logPointers () {
+		let s = '\nPointers:';
+		s += '\n Pointer1: active=' + this.input.pointer1.active;
+		s += '\n Pointer2: active=' + this.input.pointer2.active;
+
+		this.text.setText(this.text.text + s);
+	}
+
 	private dumpJoyStickState () {
 		if (!this.joyStick) {
 			return;
 		}
 		const cursorKeys = this.joyStick.createCursorKeys();
-		let s = 'Key down: ';
+		let s = '\nKey down: ';
 		for (let name in cursorKeys) {
 			if (cursorKeys[name].isDown) {
 				s += name + ' ';
@@ -521,6 +545,6 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		s += '\n';
 		s += ('Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n');
 		s += ('Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n');
-		this.text.setText(s);
+		this.text.setText(this.text.text + s);
 	}
 }
