@@ -16,6 +16,8 @@ import {ActionButton} from '../controls/action-button.class';
 
 export class GameScene extends Phaser.Scene implements LifeCycle {
 
+	private socket: SocketIOClient.Socket;
+
 	// game references
 	private arrowsGroup: Group;
 	private ownArrowsGroup: Group;
@@ -29,14 +31,20 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	private otherPlayers: Map<string, Player> = new Map();
 	private heartsDisplay: Hearts;
 
+	// controls
 	private cursors: CursorKeys;
 	private joyStick: VirtualJoyStick;
 	private joyStickCursors: CursorKeys;
 	private shootButton: ActionButton;
-	private socket: SocketIOClient.Socket;
-	private bases: TeamBase[];
-	private hasTouch: boolean;
+	private hasTouch: boolean; // if true, touch controls will be used
 
+	// player state, used for comparison to reduce updates
+	private playerState: PlayerCoordinates;
+
+	// list of all team bases
+	private bases: TeamBase[];
+
+	// text output in debug mode
 	private text;
 
 	constructor () {
@@ -127,6 +135,12 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.physics.add.collider(this.ownArrowsGroup, this.otherPlayersGroup, this.onHitOtherPlayer, undefined, this);
 		this.physics.add.collider(this.ownArrowsGroup, this.otherPlayersHitboxGroup, this.onHitOtherPlayer, undefined, this);
 
+		// add colliders for other players
+		/*
+		this.physics.add.collider(this.otherPlayersGroup, worldLayer);
+		this.physics.add.collider(this.otherPlayersGroup, worldLowLayer);
+		*/
+
 		// PLAYER EVENTS
 		// get initial data for own player
 		this.socket.on(PlayerEvent.protagonist, (playerData: PlayerData) => {
@@ -146,6 +160,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			}
 
 			this.player = new Player(this, playerData);
+			this.playerState = playerData;
 			this.physics.add.collider(this.player.player, worldLayer);
 			this.physics.add.collider(this.player.player, worldLowLayer);
 
@@ -189,7 +204,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.socket.on(PlayerEvent.coordinates, (data: PlayerCoordinates) => {
 			if (this.otherPlayers.has(data.id)) {
 				this.otherPlayers.get(data.id).updateMovement(data);
-				this.otherPlayers.get(data.id).player.setVelocity(0, 0);
+				// this.otherPlayers.get(data.id).player.setVelocity(0, 0);
 			}
 		});
 
@@ -205,12 +220,17 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				this.heartsDisplay.update(data.health);
 				if (this.player.health <= 0) {
 					this.player.animate(CharacterAnimation.DIE);
-					this.socket.emit(PlayerEvent.coordinates, {
+					const playerData: PlayerCoordinates = {
 						id: this.player.id,
 						x: this.player.player.x,
 						y: this.player.player.y,
+						velocityX: 0,
+						velocityY: 0,
 						animation: CharacterAnimation.DIE
-					} as PlayerCoordinates);
+					};
+					if (this.didPlayerMove(playerData)) {
+						this.socket.emit(PlayerEvent.coordinates, playerData);
+					}
 
 					// set revive countdown
 					this.time.delayedCall(3000, () => {
@@ -364,14 +384,15 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			let animation: string = null;
 
 			// send update for arrow positions
-			const arrowCoors: CoordinatesData[] = Array.from(this.ownArrows.values()).map((arrow) => {
-				return {
-					id: arrow.id,
-					x: arrow.arrow.x,
-					y: arrow.arrow.y
-				};
-			});
-			if (arrowCoors.length > 0) {
+			const currentOwnArrows: Arrow[] = Array.from(this.ownArrows.values());
+			if (currentOwnArrows.length !== 0) {
+				const arrowCoors: CoordinatesData[] = currentOwnArrows.map((arrow) => {
+					return {
+						id: arrow.id,
+						x: arrow.arrow.x,
+						y: arrow.arrow.y
+					};
+				});
 				this.socket.emit(ArrowEvent.coordinates, arrowCoors);
 			}
 
@@ -439,13 +460,17 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				if (animation) {
 					this.player.animate(animation);
 				}
-				const coors = {
+				const coors: PlayerCoordinates = {
 					id: this.player.id,
 					x: this.player.player.x,
 					y: this.player.player.y,
-					animation
+					velocityX: this.player.player.body.velocity.x,
+					velocityY: this.player.player.body.velocity.y,
+					animation: animation as CharacterAnimation
 				};
-				this.socket.emit(PlayerEvent.coordinates, coors);
+				if (this.didPlayerMove(coors)) {
+					this.socket.emit(PlayerEvent.coordinates, coors);
+				}
 				return;
 			}
 
@@ -508,13 +533,25 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			if (animation) {
 				this.player.animate(animation);
 			}
-			const coors = {
+			const coors: PlayerCoordinates = {
 				id: this.player.id,
 				x: this.player.player.x,
 				y: this.player.player.y,
-				animation
+				velocityX: this.player.player.body.velocity.x,
+				velocityY: this.player.player.body.velocity.y,
+				animation: animation as CharacterAnimation
 			};
-			this.socket.emit(PlayerEvent.coordinates, coors);
+			if (this.didPlayerMove(coors)) {
+				this.socket.emit(PlayerEvent.coordinates, coors);
+			}
+
+			// finally, update other player's coordinates
+			const otherPlayers = this.otherPlayers.values();
+			let otherPlayer = otherPlayers.next();
+			while(!otherPlayer.done) {
+				otherPlayer.value.updateOtherCoordinates();
+				otherPlayer = otherPlayers.next();
+			}
 		}
 	}
 
@@ -534,6 +571,51 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			this.socket.emit(ArrowEvent.destroy, arrow.getData('id'));
 		}, [], this);
 	}
+
+	private didPlayerMove (newState: PlayerCoordinates | PlayerData): boolean {
+		let didMove: boolean = false;
+
+		// check single property changes
+		if (this.playerState.velocityX !== newState.velocityX) {
+			didMove = true;
+		} else if (this.playerState.velocityY !== newState.velocityY) {
+			didMove = true;
+		} else if (this.playerState.animation !== newState.animation) {
+			didMove = true;
+		}
+
+		// check multiple property changes
+		// if colliding, the velocity may stay equal, but x/y do not change anymore
+		if (this.playerState.velocityX === newState.velocityX
+			&& this.playerState.velocityY === newState.velocityY) {
+
+			if (newState.velocityX !== 0 && newState.velocityY !== 0) {
+				// diagonal collision
+				if (this.playerState.x === newState.x || this.playerState.y === newState.y) {
+					didMove = true;
+				} else {
+					this.playerState = newState;
+				}
+			} else {
+				if (this.playerState.x === newState.x && this.playerState.y === newState.y) {
+					// frontal collision
+					didMove = true;
+				} else {
+					this.playerState = newState;
+				}
+			}
+		}
+
+		if (didMove) {
+			this.playerState = newState;
+		}
+
+		return didMove;
+	}
+
+	//
+	// DEBUG HELPERS
+	//
 
 	private logPointers () {
 		let s = '\nPointers:';

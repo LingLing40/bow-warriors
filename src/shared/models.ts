@@ -57,6 +57,8 @@ export interface PlayerData {
 	team: Team;
 	x: number;
 	y: number;
+	velocityX: number;
+	velocityY: number;
 	animation: CharacterAnimation;
 	health: number;
 }
@@ -105,6 +107,9 @@ export interface PlayerHitData {
 	arrowId: string;
 }
 
+/**
+ * Data sent by server to inform clients about a player hit
+ */
 export interface PlayerHealthData {
 	id: string;
 	health: number;
@@ -123,6 +128,8 @@ export interface CoordinatesData {
  * Coordinate update for player
  */
 export interface PlayerCoordinates extends CoordinatesData {
+	velocityX: number;
+	velocityY: number;
 	animation: CharacterAnimation;
 }
 

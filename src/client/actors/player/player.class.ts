@@ -4,6 +4,7 @@ import {AnimationHandler} from '../../game/animation.handler';
 import {Hud} from '../../hud/hud.class';
 import {LayerDepth} from '../../game/settings';
 import {TeamColors} from '../../../shared/config';
+import Body = Phaser.Physics.Arcade.Body;
 
 export class Player {
 	public player: ArcadeSprite;
@@ -63,7 +64,7 @@ export class Player {
 		// add hitbox for arrows
 		this.arrowHitbox = scene.physics.add.image(data.x, data.y, 'transparent');
 		this.arrowHitbox.setData('id', data.id);
-		this.arrowHitbox.body
+		(this.arrowHitbox.body as Body)
 			.setSize(this.hitboxBodySizeX, this.hitboxBodySizeY)
 			.setOffset(- this.hitboxBodySizeX / 2, this.hitboxBodySizeYOffset);
 
@@ -78,7 +79,7 @@ export class Player {
 			.fillEllipse(0, 0, this.shadowSizeX, this.shadowSizeY, );
 
 		this.player.setData('id', data.id);
-		this.player.setBounce(0.2);
+		this.player.setBounce(0);
 		this.player.setCollideWorldBounds(true);
 		this.player.setFrame(130);
 		this.player.setDepth(LayerDepth.PLAYER);
@@ -88,10 +89,22 @@ export class Player {
 
 	public updateMovement (data: PlayerCoordinates): void {
 		this.setCoordinates(data.x, data.y);
+		this.setVelocity(data.velocityX, data.velocityY);
 		if (data.animation) {
 			this.animate(data.animation);
 		}
 	}
+
+	public setVelocity(velocityX: number, velocityY: number): void {
+		this.player.setVelocity(velocityX, velocityY);
+	}
+
+	/*
+	public setVelocityX(velocityX: number):void {
+		this.player.setVelocityX(velocityX);
+		this.arrowHitbox.setVelocityX(velocityX);
+	}
+	*/
 
 	public setCoordinates (x: number, y: number): void {
 		this.player.x = x;

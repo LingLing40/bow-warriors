@@ -1,10 +1,11 @@
-import {Group, Scene, ArcadeSprite} from '../game/types';
+import {Group, Scene, ArcadeImage} from '../game/types';
 import {ArrowData} from '../../shared/models';
 import {LayerDepth} from '../game/settings';
 import {TeamColors} from '../../shared/config';
+import Body = Phaser.Physics.Arcade.Body;
 
 export class Arrow {
-	public arrow: ArcadeSprite;
+	public arrow: ArcadeImage;
 	public id: string;
 	public readonly baseVelocity: number = 350;
 	private group: Group;
@@ -16,7 +17,7 @@ export class Arrow {
 
 		// rotate collider body for vertical direction
 		if (data.posDiffY !== 0) {
-			this.arrow.body.setSize(this.arrow.displayHeight, this.arrow.displayWidth, true);
+			(this.arrow.body as Body).setSize(this.arrow.displayHeight, this.arrow.displayWidth, true);
 		}
 
 		// set player color tint

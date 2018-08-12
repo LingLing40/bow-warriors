@@ -27,7 +27,6 @@ app.get('/', (req, res) => {
 
 class GameServer {
 
-	// private gameHasStarted: boolean = false;
 	private players: AllPlayerData = {};
 	private arrows: AllArrowData = {};
 	private bases: TeamBase[];
@@ -117,6 +116,8 @@ class GameServer {
 			if (player) {
 				player.x = data.x;
 				player.y = data.y;
+				player.velocityX = data.velocityX;
+				player.velocityY = data.velocityY;
 				player.animation = data.animation;
 				socket.broadcast.emit(PlayerEvent.coordinates, data);
 			}
@@ -194,6 +195,8 @@ class GameServer {
 			team,
 			x: coords.x,
 			y: coords.y,
+			velocityX: 0,
+			velocityY: 0,
 			animation: CharacterAnimation.STAND_DOWN,
 			health: this.baseHealth
 		};
