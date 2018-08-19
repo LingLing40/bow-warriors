@@ -90,6 +90,7 @@ export interface ArrowData {
 	posDiffX: number;
 	posDiffY: number;
 	angle: number;
+	created?: integer;
 }
 
 /**
@@ -131,6 +132,14 @@ export interface PlayerCoordinates extends CoordinatesData {
 	velocityX: number;
 	velocityY: number;
 	animation: CharacterAnimation;
+}
+
+/**
+ * Coordinate update for arrow
+ */
+export interface ArrowCoordinates extends CoordinatesData {
+	velocityX: number;
+	velocityY: number;
 }
 
 export interface PlayerReviveData {

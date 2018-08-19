@@ -97,6 +97,10 @@ export class Player {
 
 	public setVelocity(velocityX: number, velocityY: number): void {
 		this.player.setVelocity(velocityX, velocityY);
+		if (velocityX === 0 && velocityY === 0) {
+			this.arrowHitbox.setVelocity(0, 0);
+			this.arrowHitbox.setVelocity(0, 0);
+		}
 	}
 
 	/*

@@ -1,7 +1,8 @@
 import {LifeCycle} from '../game/lifecycle';
-import {Group, GameObject} from '../game/types';
+import {Group, GameObject, ArcadeSprite} from '../game/types';
 import {Player} from '../actors/player/player.class';
 import {
+	ArrowCoordinates,
 	ArrowData, Character, CharacterAnimation, CoordinatesData, PlayerCoordinates, PlayerData, PlayerHealthData, PlayerHitData,
 	PlayerReviveData, SetupData, Team, TeamBase
 } from '../../shared/models';
@@ -169,11 +170,9 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			this.physics.add.collider(this.ownArrowsGroup, worldHighLayer, this.onArrowCollision, undefined, this);
 
 			// camera
-			//*
 			const camera = this.cameras.main;
 			camera.startFollow(this.player.player);
 			camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-			//*/
 
 			// heart display
 			this.heartsDisplay = new Hearts(this, playerData.health);
@@ -212,7 +211,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.socket.on(PlayerEvent.hit, (data: PlayerHealthData) => {
 			if (this.player.id === data.id) {
 				// own player was hit
-				this.player.player.setVelocity(0, 0);
+				this.player.setVelocity(0, 0);
 				if (this.player.health === 0) {
 					return;
 				}
@@ -242,7 +241,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			} else {
 				// an other player was hit
 				if (this.otherPlayers.has(data.id)) {
-					this.otherPlayers.get(data.id).player.setVelocity(0, 0);
+					this.otherPlayers.get(data.id).setVelocity(0, 0);
 					this.otherPlayers.get(data.id).health = data.health;
 					this.otherPlayers.get(data.id).blink(this);
 				}
@@ -276,25 +275,40 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// ARROW EVENTS
 		// new arrow was created
 		this.socket.on(ArrowEvent.create, (arrowData: ArrowData) => {
+			let arrow: Arrow;
 			// check if the arrow is created by this player
 			if (arrowData.playerId === this.player.id) {
-				const arrow = new Arrow(this, arrowData, this.ownArrowsGroup);
-				arrow.arrow.setVelocity(arrowData.posDiffX * arrow.baseVelocity, arrowData.posDiffY * arrow.baseVelocity);
+				arrow = new Arrow(this, arrowData, this.ownArrowsGroup);
 				this.ownArrows.set(arrowData.id, arrow);
 			} else {
-				const arrow = new Arrow(this, arrowData, this.arrowsGroup);
+				arrow = new Arrow(this, arrowData, this.arrowsGroup);
 				this.arrows.set(arrowData.id, arrow);
 			}
+			arrow.arrow.setVelocity(arrowData.posDiffX * Arrow.baseVelocity, arrowData.posDiffY * Arrow.baseVelocity);
 		});
 
 		// arrow coordinates update
-		this.socket.on(ArrowEvent.coordinates, (data: CoordinatesData[]) => {
+		/*
+		this.socket.on(ArrowEvent.coordinates, (data: ArrowData[]) => {
 			data.forEach((coors) => {
 				if (this.arrows.has(coors.id)) {
 					const arrow = this.arrows.get(coors.id);
 					arrow.arrow.x = coors.x;
 					arrow.arrow.y = coors.y;
+					if (coors.velocityX) {
+						arrow.arrow.setVelocity(coors.velocityX, coors.velocityY);
+					}
 				}
+			});
+		});
+		*/
+
+		// get initial list of other arrows
+		this.socket.on(ArrowEvent.arrows, (data: ArrowData[]) => {
+			data.forEach((entry) => {
+				const arrow = new Arrow(this, entry, this.arrowsGroup);
+				arrow.arrow.setVelocity(entry.posDiffX * Arrow.baseVelocity, entry.posDiffY * Arrow.baseVelocity);
+				this.arrows.set(entry.id, arrow);
 			});
 		});
 
@@ -384,6 +398,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			let animation: string = null;
 
 			// send update for arrow positions
+			/*
 			const currentOwnArrows: Arrow[] = Array.from(this.ownArrows.values());
 			if (currentOwnArrows.length !== 0) {
 				const arrowCoors: CoordinatesData[] = currentOwnArrows.map((arrow) => {
@@ -395,6 +410,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 				});
 				this.socket.emit(ArrowEvent.coordinates, arrowCoors);
 			}
+			*/
 
 			// update hud/hitbox/shadow position
 			this.player.updateOtherCoordinates();
@@ -555,7 +571,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		}
 	}
 
-	private onHitOtherPlayer (arrow: GameObject, player: GameObject) {
+	private onHitOtherPlayer (arrow: ArcadeSprite, player: GameObject) {
 		const arrowId = arrow.getData('id');
 		const playerId = player.getData('id');
 
@@ -563,10 +579,30 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			playerId,
 			arrowId
 		};
+		/*
+		const arrowCoors: ArrowCoordinates = {
+			id: arrowId,
+			x: arrow.x,
+			y: arrow.y,
+			velocityX: arrow.body.velocity.x,
+			velocityY: arrow.body.velocity.y
+		};
+		*/
 		this.socket.emit(PlayerEvent.hit, hitData);
+		// this.socket.emit(ArrowEvent.coordinates, arrowCoors);
 	}
 
-	private onArrowCollision (arrow: GameObject, object: GameObject) {
+	private onArrowCollision (arrow: ArcadeSprite, object: GameObject) {
+		/*
+		const arrowCoors: ArrowCoordinates = {
+			id: arrow.getData('id'),
+			x: arrow.x,
+			y: arrow.y,
+			velocityX: arrow.body.velocity.x,
+			velocityY: arrow.body.velocity.y
+		};
+		this.socket.emit(ArrowEvent.coordinates, arrowCoors);
+		*/
 		this.time.delayedCall(300, () => {
 			this.socket.emit(ArrowEvent.destroy, arrow.getData('id'));
 		}, [], this);
@@ -597,7 +633,9 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 					this.playerState = newState;
 				}
 			} else {
-				if (this.playerState.x === newState.x && this.playerState.y === newState.y) {
+				if (newState.velocityX === 0 && newState.velocityY === 0) {
+					// do nothing if not moving
+				} else if (this.playerState.x === newState.x && this.playerState.y === newState.y) {
 					// frontal collision
 					didMove = true;
 				} else {

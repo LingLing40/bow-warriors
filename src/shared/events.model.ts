@@ -47,6 +47,9 @@ export class ArrowEvent {
 	// client or server triggers arrow destruction
 	public static destroy: string = 'arrow:destroy';
 
+	// server sends (initial) list of all other arrows available
+	public static arrows: string = 'arrow:collection'
+
 	// client updates positions of own arrows, server broadcasts positions
-	public static coordinates: string = 'arrow:coordinates';
+	// public static coordinates: string = 'arrow:coordinates';
 }

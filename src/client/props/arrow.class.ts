@@ -7,7 +7,7 @@ import Body = Phaser.Physics.Arcade.Body;
 export class Arrow {
 	public arrow: ArcadeImage;
 	public id: string;
-	public readonly baseVelocity: number = 350;
+	public static readonly baseVelocity: number = 350;
 	private group: Group;
 
 	constructor (scene: Scene, data: ArrowData, group: Group) {

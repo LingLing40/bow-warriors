@@ -6,12 +6,13 @@ import {
 } from './../shared/events.model';
 import {
 	AllArrowData,
-	AllPlayerData,
+	AllPlayerData, ArrowCoordinates,
 	ArrowData,
 	AuthenticationData,
 	CharacterAnimation, CoordinatesData, PlayerCoordinates,
 	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData, SetupData, Team, TeamBase
 } from '../shared/models';
+import {Arrow} from '../client/props/arrow.class';
 
 const express = require('express');
 const app = express();
@@ -60,23 +61,26 @@ class GameServer {
 
 	private addArrowListeners (socket): void {
 		socket.on(ArrowEvent.shoot, (arrowData: ArrowData) => {
+			arrowData.created = Date.now();
 			arrowData.id = uuid();
 			this.arrows[arrowData.id] = arrowData;
 			socket.emit(ArrowEvent.create, arrowData);
 			socket.broadcast.emit(ArrowEvent.create, arrowData);
 		});
 
-		socket.on(ArrowEvent.coordinates, (data: CoordinatesData[]) => {
-			const update: CoordinatesData[] = [];
-			data.forEach((coors: CoordinatesData) => {
+		/*
+		socket.on(ArrowEvent.coordinates, (data: ArrowCoordinates[]) => {
+			// const update: ArrowCoordinates[] = [];
+			data.forEach((coors) => {
 				if (this.arrows[coors.id]) {
 					this.arrows[coors.id].x = coors.x;
 					this.arrows[coors.id].y = coors.y;
-					update.push(coors);
+					// update.push(coors);
 				}
 			});
-			socket.broadcast.emit(ArrowEvent.coordinates, update);
+			// socket.broadcast.emit(ArrowEvent.coordinates, update);
 		});
+		*/
 
 		socket.on(ArrowEvent.destroy, (id: string) => {
 			if (this.arrows[id]) {
@@ -136,7 +140,7 @@ class GameServer {
 
 	private addSignOnListener (socket): void {
 		socket.on(GameEvent.authentication, (options: AuthenticationData) => {
-
+			console.info(GameEvent.authentication);
 			// make sure data for bases is available
 			if (!this.bases) {
 				socket.on(GameEvent.setup, (data: SetupData) => {
@@ -174,6 +178,8 @@ class GameServer {
 		this.createPlayer(socket, options);
 		socket.emit(PlayerEvent.protagonist, this.players[socket.id]);
 		socket.broadcast.emit(PlayerEvent.joined, this.players[socket.id]);
+		const arrows = this.getAllArrows();
+		socket.emit(ArrowEvent.arrows, arrows);
 	}
 
 	private createPlayer (socket, options: AuthenticationData): void {
@@ -205,6 +211,19 @@ class GameServer {
 	private getAllPlayers (): PlayerData[] {
 		return Object.keys(this.players).map((id) => {
 			return this.players[id];
+		});
+	}
+
+	/**
+	 * @returns {ArrowData[]} Arrows with current position relative to creation time
+	 */
+	private getAllArrows (): ArrowData[] {
+		return Object.keys(this.arrows).map((id) => {
+			const arrow = Object.assign({}, this.arrows[id]);
+			const timeDiff = Date.now() - arrow.created / 1000;
+			arrow.x = arrow.x + (arrow.posDiffX * Arrow.baseVelocity * timeDiff);
+			arrow.y = arrow.y + (arrow.posDiffY * Arrow.baseVelocity * timeDiff);
+			return arrow;
 		});
 	}
 
