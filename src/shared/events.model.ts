@@ -10,6 +10,9 @@ export class ServerEvent {
 	// initial connection of a new client on server
 	public static connected: string = 'connection';
 
+	// client did disconnect, but server still receives events
+	public static reconnect: string = 'reconnect';
+
 	// client disconnects from server
 	public static disconnected: string = 'disconnect';
 }

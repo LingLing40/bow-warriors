@@ -6,10 +6,10 @@ import {
 } from './../shared/events.model';
 import {
 	AllArrowData,
-	AllPlayerData, ArrowCoordinates,
+	AllPlayerData,
 	ArrowData,
 	AuthenticationData,
-	CharacterAnimation, CoordinatesData, PlayerCoordinates,
+	CharacterAnimation, PlayerCoordinates,
 	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData, SetupData, Team, TeamBase
 } from '../shared/models';
 import {Arrow} from '../client/props/arrow.class';
@@ -61,11 +61,15 @@ class GameServer {
 
 	private addArrowListeners (socket): void {
 		socket.on(ArrowEvent.shoot, (arrowData: ArrowData) => {
-			arrowData.created = Date.now();
-			arrowData.id = uuid();
-			this.arrows[arrowData.id] = arrowData;
-			socket.emit(ArrowEvent.create, arrowData);
-			socket.broadcast.emit(ArrowEvent.create, arrowData);
+			if (this.players[arrowData.playerId]) {
+				arrowData.created = Date.now();
+				arrowData.id = uuid();
+				this.arrows[arrowData.id] = arrowData;
+				socket.emit(ArrowEvent.create, arrowData);
+				socket.broadcast.emit(ArrowEvent.create, arrowData);
+			} else {
+				this.reconnectPlayer(socket);
+			}
 		});
 
 		/*
@@ -206,6 +210,10 @@ class GameServer {
 			animation: CharacterAnimation.STAND_DOWN,
 			health: this.baseHealth
 		};
+	}
+
+	private reconnectPlayer(socket) {
+		socket.emit(ServerEvent.reconnect);
 	}
 
 	private getAllPlayers (): PlayerData[] {

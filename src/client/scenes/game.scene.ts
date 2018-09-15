@@ -7,7 +7,7 @@ import {
 	PlayerReviveData, SetupData, Team, TeamBase
 } from '../../shared/models';
 import {AnimationHandler} from '../game/animation.handler';
-import {ArrowEvent, GameEvent, PlayerEvent} from '../../shared/events.model';
+import {ArrowEvent, GameEvent, PlayerEvent, ServerEvent} from '../../shared/events.model';
 import {Arrow} from '../props/arrow.class';
 import {LayerDepth} from '../game/settings';
 import {Hearts} from '../hud/hearts.class';
@@ -135,6 +135,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.physics.add.collider(this.ownArrowsGroup, worldLayer, this.onArrowCollision, undefined, this);
 		this.physics.add.collider(this.ownArrowsGroup, this.otherPlayersGroup, this.onHitOtherPlayer, undefined, this);
 		this.physics.add.collider(this.ownArrowsGroup, this.otherPlayersHitboxGroup, this.onHitOtherPlayer, undefined, this);
+		this.physics.add.collider(this.arrowsGroup, worldLayer);
 
 		// add colliders for other players
 		/*
@@ -183,6 +184,12 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			this.socket.emit(GameEvent.setup, {
 				bases: this.bases
 			} as SetupData);
+		});
+
+		// own client was detected as disconnected
+		this.socket.on(ServerEvent.reconnect, () => {
+			alert('You have been disconnected from the game. You need to reload to join back into the game.');
+			location.reload();
 		});
 
 		// get initial list of players
