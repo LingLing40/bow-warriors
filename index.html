@@ -12,14 +12,22 @@
 
 <body>
 <div class="login-screen">
+	<img src="assets/logo.png" class="logo">
+	<div id="login-form" class="login-box hide">
 	<label>
-		Your name (max. 12 characters):
+		<h2>Your name</h2>
 		<input id="login-name" placeholder="Adventurer" maxlength="12">
+		<p>(max. 12 characters)</p>
 	</label>
 
+	<h2>Choose your character</h2>
 	<div id="login-characters"></div>
 
 	<button id="login-button">Join Game</button>
+	</div>
+	<div id="login-loading" class="login-box">
+		loading ...
+	</div>
 </div>
 
 <script src="dist/socket.io.js"></script>

@@ -26,6 +26,8 @@ Original Template: Multiplayer Phaser Game
 
 Liberated Pixel Cup (LPC)
 
+textcraft.net logo generator 
+
 
 ## Other resources
 More useful resources to create games similar to Bow Warrior.

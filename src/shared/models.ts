@@ -4,10 +4,10 @@ export enum Team {
 }
 
 export enum Character {
-	DEFAULT = 'base',
-	PRINCESS = 'princess',
 	WARRIOR = 'warrior',
-	ORC = 'orc'
+	PRINCESS = 'princess',
+	ORC = 'orc',
+	DEFAULT = 'base'
 }
 
 export enum CharacterAnimation {

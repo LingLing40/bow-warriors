@@ -7,12 +7,17 @@ declare const window: any;
 export class LoginScene {
 
 	private loginScreen: HTMLDivElement;
+	private loginLoading: HTMLDivElement;
+	private loginForm: HTMLDivElement;
 	private loginNameInput: HTMLInputElement;
 	private loginCharacters: HTMLDivElement;
 	private loginButton: HTMLInputElement;
+	private readonly hideClass = 'hide';
 
 	constructor (private game: Game) {
 		this.loginScreen = document.querySelector('.login-screen');
+		this.loginLoading = document.querySelector('#login-loading');
+		this.loginForm = document.querySelector('#login-form');
 		this.loginNameInput = document.querySelector('#login-name');
 		this.loginButton = document.querySelector('#login-button');
 		this.loginCharacters = document.querySelector('#login-characters');
@@ -21,9 +26,11 @@ export class LoginScene {
 		let html = '';
 		let first = true;
 		for (let character in Character) {
-			html += `<label>
+			html += `<label class="select-character">
 					<input type="radio" name="login-character" value="${Character[character]}"${first ? 'checked="checked"' : ''}>
-					${Character[character]}
+					<div>
+						<img src="assets/characters/${Character[character]}_preview.png">
+					</div>
 			</label>`;
 
 			if (first) {
@@ -31,6 +38,8 @@ export class LoginScene {
 			}
 		}
 		this.loginCharacters.innerHTML = html;
+		this.loginLoading.classList.toggle(this.hideClass);
+		this.loginForm.classList.toggle(this.hideClass);
 
 		this.loginButton.addEventListener('click', this.login.bind(this));
 		this.loginNameInput.focus();
@@ -53,7 +62,7 @@ export class LoginScene {
 	}
 
 	private toggleLogin (): void {
-		this.loginScreen.classList.toggle('hide');
+		this.loginScreen.classList.toggle(this.hideClass);
 	}
 
 }
