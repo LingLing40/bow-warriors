@@ -15,9 +15,9 @@ npm run start:dev
 ## TODO
 - add marker for own player
 - count team points on hit and display on screen
-- save per player statistics (friendly fire, hits, deadly hits)
-- design for login screen
-- shoot button for mobile devices
+- show timer for game round
+- show statistics at end of game
+- portrait mode detection -> show hint
 
 ## Attributions
 Graphics, tutorials, code bits and other resources used to develop this game.

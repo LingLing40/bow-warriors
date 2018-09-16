@@ -13,6 +13,7 @@ import {
 	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData, SetupData, Team, TeamBase
 } from '../shared/models';
 import {Arrow} from '../client/props/arrow.class';
+import {BASE_HEALTH} from '../shared/config';
 
 const express = require('express');
 const app = express();
@@ -31,8 +32,6 @@ class GameServer {
 	private players: AllPlayerData = {};
 	private arrows: AllArrowData = {};
 	private bases: TeamBase[];
-
-	private readonly baseHealth: number = 3;
 
 	constructor () {
 		this.socketEvents();
@@ -67,6 +66,7 @@ class GameServer {
 				this.arrows[arrowData.id] = arrowData;
 				socket.emit(ArrowEvent.create, arrowData);
 				socket.broadcast.emit(ArrowEvent.create, arrowData);
+				this.players[arrowData.playerId].statisticArrows++;
 			} else {
 				this.reconnectPlayer(socket);
 			}
@@ -98,16 +98,38 @@ class GameServer {
 	private addHitListener (socket): void {
 		socket.on(PlayerEvent.hit, (data: PlayerHitData) => {
 			const player = this.players[data.playerId];
+			const arrow = this.arrows[data.arrowId];
+			const shootingPlayer = arrow ? this.players[arrow.playerId] : null;
+
 			if (player) {
+				player.statisticSelfHit++;
 				player.health--;
+
+				if (player.health === 0) {
+					player.statisticDied++;
+					if (shootingPlayer) {
+						shootingPlayer.statisticOtherDeadlyHit++;
+					}
+				}
+
 				if (player.health < 0) {
 					player.health = 0;
 				}
-				if (this.arrows[data.arrowId]) {
+
+				if (arrow) {
+					if (shootingPlayer) {
+						shootingPlayer.statisticOtherTotalHit++;
+
+						// detect friendly fire
+						if (player.team === shootingPlayer.team) {
+							shootingPlayer.statisticFriendlyFire++;
+						}
+					}
 					socket.emit(ArrowEvent.destroy, data.arrowId);
 					socket.broadcast.emit(ArrowEvent.destroy, data.arrowId);
 					delete this.arrows[data.arrowId];
 				}
+
 				const playerHealthData: PlayerHealthData = {
 					id: player.id,
 					health: player.health
@@ -164,7 +186,7 @@ class GameServer {
 				const coors = this.getCoordinateInTeamBase(player.team);
 				player.x = coors.x;
 				player.y = coors.y;
-				player.health = this.baseHealth;
+				player.health = BASE_HEALTH;
 				const data: PlayerReviveData = {
 					id,
 					x: player.x,
@@ -208,11 +230,17 @@ class GameServer {
 			velocityX: 0,
 			velocityY: 0,
 			animation: CharacterAnimation.STAND_DOWN,
-			health: this.baseHealth
+			health: BASE_HEALTH,
+			statisticArrows: 0,
+			statisticDied: 0,
+			statisticSelfHit: 0,
+			statisticFriendlyFire: 0,
+			statisticOtherTotalHit: 0,
+			statisticOtherDeadlyHit: 0
 		};
 	}
 
-	private reconnectPlayer(socket) {
+	private reconnectPlayer (socket) {
 		socket.emit(ServerEvent.reconnect);
 	}
 
@@ -239,7 +267,7 @@ class GameServer {
 
 		const base = this.bases.find(base => base.properties.team === team);
 
-		// limit area so that the sprite is rendered within
+		// limit area so that the sprite is rendered within base
 		// (sprites are center-positioned in game)
 		const limitX = 20;
 		const limitY = 32;

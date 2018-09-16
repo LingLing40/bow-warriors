@@ -63,11 +63,20 @@ export interface PlayerData {
 	health: number;
 }
 
+export interface ServerPlayerData extends PlayerData {
+	statisticArrows: number; // total number of arrows shot
+	statisticDied: number; // number of times own player died
+	statisticSelfHit: number; // all hits against own player
+	statisticOtherTotalHit: number; // all hits to others
+	statisticFriendlyFire: number; // part of total hits against own team
+	statisticOtherDeadlyHit: number; // part of total hits that was deadly (against other team)
+}
+
 /**
  * List of all Players on server
  */
 export interface AllPlayerData {
-	[key: string]: PlayerData;
+	[key: string]: ServerPlayerData;
 }
 
 /**
