@@ -2,8 +2,7 @@ import {LifeCycle} from '../game/lifecycle';
 import {Group, GameObject, ArcadeSprite} from '../game/types';
 import {Player} from '../actors/player/player.class';
 import {
-	ArrowCoordinates,
-	ArrowData, Character, CharacterAnimation, CoordinatesData, PlayerCoordinates, PlayerData, PlayerHealthData, PlayerHitData,
+	ArrowData, Character, CharacterAnimation, PlayerCoordinates, PlayerData, PlayerHealthData, PlayerHitData,
 	PlayerReviveData, SetupData, Team, TeamBase
 } from '../../shared/models';
 import {AnimationHandler} from '../game/animation.handler';
@@ -195,15 +194,19 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// get initial list of players
 		this.socket.on(PlayerEvent.players, (players: PlayerData[]) => {
 			players.forEach(playerData => {
-				const otherPlayer = new Player(this, playerData, this.otherPlayersGroup, this.otherPlayersHitboxGroup);
-				this.otherPlayers.set(playerData.id, otherPlayer);
+				if (!this.otherPlayers.has(playerData.id)) {
+					const otherPlayer = new Player(this, playerData, this.otherPlayersGroup, this.otherPlayersHitboxGroup);
+					this.otherPlayers.set(playerData.id, otherPlayer);
+				}
 			})
 		});
 
 		// when a new player joins during the game
 		this.socket.on(PlayerEvent.joined, (playerData: PlayerData) => {
-			const joinedPlayer = new Player(this, playerData, this.otherPlayersGroup, this.otherPlayersHitboxGroup);
-			this.otherPlayers.set(playerData.id, joinedPlayer);
+			if (!this.otherPlayers.has(playerData.id)) {
+				const joinedPlayer = new Player(this, playerData, this.otherPlayersGroup, this.otherPlayersHitboxGroup);
+				this.otherPlayers.set(playerData.id, joinedPlayer);
+			}
 		});
 
 		// when an other player moves
