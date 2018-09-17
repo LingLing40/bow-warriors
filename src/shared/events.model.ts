@@ -4,6 +4,9 @@ export class GameEvent {
 
 	// server asks for game setup from first client (e.g. bases positions)
 	public static setup: string = 'game:setup';
+
+	// server sends team points update
+	public static points: string = 'game:points';
 }
 
 export class ServerEvent {

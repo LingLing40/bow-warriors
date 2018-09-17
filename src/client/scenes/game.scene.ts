@@ -3,7 +3,7 @@ import {Group, GameObject, ArcadeSprite} from '../game/types';
 import {Player} from '../actors/player/player.class';
 import {
 	ArrowData, Character, CharacterAnimation, PlayerCoordinates, PlayerData, PlayerHealthData, PlayerHitData,
-	PlayerReviveData, SetupData, Team, TeamBase
+	PlayerReviveData, PointsData, SetupData, Team, TeamBase
 } from '../../shared/models';
 import {AnimationHandler} from '../game/animation.handler';
 import {ArrowEvent, GameEvent, PlayerEvent, ServerEvent} from '../../shared/events.model';
@@ -30,6 +30,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 	private ownArrows: Map<string, Arrow> = new Map();
 	private otherPlayers: Map<string, Player> = new Map();
 	private heartsDisplay: Hearts;
+	private pointsDisplay;
 
 	// controls
 	private cursors: CursorKeys;
@@ -123,7 +124,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// debug graphic for bases
 		if (DEBUG) {
 			this.bases.forEach(base => {
-				const g = this.add.graphics()
+				this.add.graphics()
 					.setAlpha(0.75)
 					.fillRect(base.x, base.y, base.width, base.height);
 			});
@@ -176,6 +177,20 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 
 			// heart display
 			this.heartsDisplay = new Hearts(this, playerData.health);
+		});
+
+		// points display
+		this.pointsDisplay = this.add.text(this.sys.game.config.width as integer - 16, 16, '');
+		this.pointsDisplay.setScrollFactor(0)
+			.setOrigin(1, 0)
+			.setDepth(LayerDepth.POINTS);
+
+		this.socket.on(GameEvent.points, (data: PointsData) => {
+			let points = '';
+			Object.keys(data).forEach(team => {
+				points += ` ${team}:${data[team]}`;
+			});
+			this.pointsDisplay.setText(points);
 		});
 
 		// server asks for config

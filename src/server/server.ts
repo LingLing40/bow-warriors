@@ -10,10 +10,10 @@ import {
 	ArrowData,
 	AuthenticationData,
 	CharacterAnimation, PlayerCoordinates,
-	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData, SetupData, Team, TeamBase
+	PlayerData, PlayerHealthData, PlayerHitData, PlayerReviveData, PointsData, SetupData, Team, TeamBase
 } from '../shared/models';
 import {Arrow} from '../client/props/arrow.class';
-import {BASE_HEALTH} from '../shared/config';
+import {BASE_HEALTH, POINTS_BONUS_DEADLY_HIT, POINTS_FRIENDLY_HIT, POINTS_HIT} from '../shared/config';
 
 const express = require('express');
 const app = express();
@@ -32,6 +32,7 @@ class GameServer {
 	private players: AllPlayerData = {};
 	private arrows: AllArrowData = {};
 	private bases: TeamBase[];
+	private points: PointsData = {};
 
 	constructor () {
 		this.socketEvents();
@@ -109,6 +110,7 @@ class GameServer {
 					player.statisticDied++;
 					if (shootingPlayer) {
 						shootingPlayer.statisticOtherDeadlyHit++;
+						this.points[shootingPlayer.team] += POINTS_BONUS_DEADLY_HIT;
 					}
 				}
 
@@ -123,7 +125,11 @@ class GameServer {
 						// detect friendly fire
 						if (player.team === shootingPlayer.team) {
 							shootingPlayer.statisticFriendlyFire++;
+							this.points[shootingPlayer.team] -= POINTS_FRIENDLY_HIT;
+						} else {
+							this.points[shootingPlayer.team] += POINTS_HIT;
 						}
+						this.updatePoints(socket);
 					}
 					socket.emit(ArrowEvent.destroy, data.arrowId);
 					socket.broadcast.emit(ArrowEvent.destroy, data.arrowId);
@@ -171,6 +177,12 @@ class GameServer {
 			if (!this.bases) {
 				socket.on(GameEvent.setup, (data: SetupData) => {
 					this.bases = data.bases;
+
+					// setup team points
+					Object.keys(Team).forEach(team => {
+						this.points[Team[team]] = 0;
+					});
+
 					this.afterSignOnSetup(socket, options);
 				});
 
@@ -206,6 +218,7 @@ class GameServer {
 		socket.broadcast.emit(PlayerEvent.joined, this.players[socket.id]);
 		const arrows = this.getAllArrows();
 		socket.emit(ArrowEvent.arrows, arrows);
+		this.updatePoints(socket);
 	}
 
 	private createPlayer (socket, options: AuthenticationData): void {
@@ -261,6 +274,11 @@ class GameServer {
 			arrow.y = arrow.y + (arrow.posDiffY * Arrow.baseVelocity * timeDiff);
 			return arrow;
 		});
+	}
+
+	private updatePoints (socket): void {
+		socket.emit(GameEvent.points, this.points);
+		socket.broadcast.emit(GameEvent.points, this.points);
 	}
 
 	private getCoordinateInTeamBase (team: Team): { x: number, y: number } {

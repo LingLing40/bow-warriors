@@ -48,6 +48,13 @@ export interface SetupData {
 }
 
 /**
+ * Total points stored per team
+ */
+export interface PointsData {
+	[key: string]: number;
+}
+
+/**
  * PlayerData stored on server and on clients
  */
 export interface PlayerData {
@@ -63,6 +70,9 @@ export interface PlayerData {
 	health: number;
 }
 
+/**
+ * Extended player data on server, containing statistics
+ */
 export interface ServerPlayerData extends PlayerData {
 	statisticArrows: number; // total number of arrows shot
 	statisticDied: number; // number of times own player died
