@@ -7,7 +7,9 @@ export enum Character {
 	WARRIOR = 'warrior',
 	PRINCESS = 'princess',
 	ORC = 'orc',
-	DEFAULT = 'base'
+	PIRATE = 'pirate',
+	DEFAULT = 'base',
+	NIGHTELF = 'nightelf'
 }
 
 export enum CharacterAnimation {
