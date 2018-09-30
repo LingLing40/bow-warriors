@@ -10,7 +10,7 @@
     "test:tdd": "karma start",
     "test:ci": "karma start --singleRun",
     "test": "",
-    "build": "concurrently \"webpack --env=prod\" \"tsc src/server/server\"",
+    "build": "concurrently -s \"last\" \"webpack --env=prod\" \"tsc src/server/server\"",
     "start": "node ./src/server/server.js"
   },
   "repository": {
