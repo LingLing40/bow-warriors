@@ -180,7 +180,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		});
 
 		// points display
-		this.pointsDisplay = this.add.text(this.sys.game.config.width as integer - 16, 16, '');
+		this.pointsDisplay = this.add.text(this.sys.game.config.width as number - 16, 16, '');
 		this.pointsDisplay.setScrollFactor(0)
 			.setOrigin(1, 0)
 			.setDepth(LayerDepth.POINTS);
@@ -355,8 +355,8 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		}
 
 		// shoot button
-		const shootButtonX = this.sys.game.config.width as integer - ActionButton.buttonSize - 30;
-		const shootButtonY = this.sys.game.config.height as integer - ActionButton.buttonSize - 30;
+		const shootButtonX = this.sys.game.config.width as number - ActionButton.buttonSize - 30;
+		const shootButtonY = this.sys.game.config.height as number - ActionButton.buttonSize - 30;
 		this.shootButton = new ActionButton(this, shootButtonX, shootButtonY, 'SHOOT');
 		this.shootButton.setEnable(false);
 		// add additional pointer for actionButton
@@ -365,7 +365,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		// joystick control
 		this.joyStick = new VirtualJoyStick(this, {
 			x: 100,
-			y: this.sys.game.config.height as integer - 100,
+			y: this.sys.game.config.height as number - 100,
 			radius: 70,
 			// base: 'joystick_bg',
 			// thumb: 'joystick_pin',

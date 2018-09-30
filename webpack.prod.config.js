@@ -13,7 +13,7 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.ts?$/,
+                test: /\.ts$/,
                 loader: 'awesome-typescript-loader',
                 exclude: [
                     path.resolve(__dirname, "typings"),

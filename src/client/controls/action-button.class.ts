@@ -12,7 +12,7 @@ export class ActionButton {
 	public static readonly buttonSize: number = 40;
 	public key: Key;
 
-	constructor (scene: Scene, x: integer, y: integer, label: string) {
+	constructor (scene: Scene, x: number, y: number, label: string) {
 
 		this.button = scene.add.container(x, y);
 		this.button

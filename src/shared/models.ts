@@ -29,7 +29,7 @@ export enum CharacterAnimation {
 }
 
 export interface TeamBase {
-	id: integer;
+	id: number;
 	name: string;
 	width: number;
 	height: number;
@@ -111,7 +111,7 @@ export interface ArrowData {
 	posDiffX: number;
 	posDiffY: number;
 	angle: number;
-	created?: integer;
+	created?: number;
 }
 
 /**
