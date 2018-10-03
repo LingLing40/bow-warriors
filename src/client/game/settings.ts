@@ -10,4 +10,4 @@ export const enum LayerDepth {
 	JOYSTICK = 30
 }
 
-export const MAP = 'map.json';
+export const MAP = 'map_sc.json';
