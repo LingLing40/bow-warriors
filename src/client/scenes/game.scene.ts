@@ -8,7 +8,7 @@ import {
 import {AnimationHandler} from '../game/animation.handler';
 import {ArrowEvent, GameEvent, PlayerEvent, ServerEvent} from '../../shared/events.model';
 import {Arrow} from '../props/arrow.class';
-import {LayerDepth} from '../game/settings';
+import {LayerDepth, MAP} from '../game/settings';
 import {Hearts} from '../hud/hearts.class';
 import {DEBUG} from '../../shared/config';
 import {VirtualJoyStick} from '../controls/joystick.class';
@@ -60,7 +60,7 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		this.load.image('transparent', 'assets/transparent.png');
 		this.load.image('arrow', 'assets/weapons/arrow.png');
 		this.load.image('tiles', 'assets/tilesets/map_base_extruded.png');
-		this.load.tilemapTiledJSON('map', 'assets/tilesets/map.json');
+		this.load.tilemapTiledJSON('map', `assets/tilesets/${MAP}`);
 		this.load.spritesheet('heart',
 			'assets/heart.png',
 			{frameWidth: 32, frameHeight: 32});
@@ -90,10 +90,12 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 		const worldLayer = map.createStaticLayer('world', tileset, 0, 0);
 		const worldHighLayer = map.createStaticLayer('world_high', tileset, 0, 0);
 		const aboveLayer = map.createStaticLayer('above_player', tileset, 0, 0);
+		const above2Layer = map.createStaticLayer('above_player2', tileset, 0, 0);
 
 		worldLowLayer.setCollisionByProperty({collides: true});
 		worldLayer.setCollisionByProperty({collides: true});
 		aboveLayer.setDepth(LayerDepth.WORLD_ABOVE_PLAYER);
+		above2Layer.setDepth(LayerDepth.WORLD_ABOVE_PLAYER2);
 		this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
 		// debug
