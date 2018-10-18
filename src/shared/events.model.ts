@@ -18,6 +18,12 @@ export class ServerEvent {
 
 	// client disconnects from server
 	public static disconnected: string = 'disconnect';
+
+	// client disconnects from server
+	public static stop: string = 'stop';
+
+	// client disconnects from server
+	public static reset: string = 'reset';
 }
 
 export class PlayerEvent {

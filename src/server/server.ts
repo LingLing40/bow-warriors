@@ -33,6 +33,7 @@ class GameServer {
 	private arrows: AllArrowData = {};
 	private bases: TeamBase[];
 	private points: PointsData = {};
+	private isGameRunning: boolean = true;
 
 	constructor () {
 		this.socketEvents();
@@ -47,7 +48,10 @@ class GameServer {
 	private socketEvents (): void {
 		io.on(ServerEvent.connected, socket => {
 			console.info('New client connected:', socket.id);
-			this.attachListeners(socket);
+			if (this.isGameRunning) {
+				this.attachListeners(socket);
+			}
+			this.addGameListener(socket);
 		});
 	}
 
@@ -170,9 +174,35 @@ class GameServer {
 		});
 	}
 
+	private stopGame (socket) {
+		socket.broadcast.emit(ServerEvent.stop);
+		socket.disconnect();
+		this.isGameRunning = false;
+	}
+
+	private addGameListener (socket): void {
+		socket.on(ServerEvent.reset, () => {
+			console.info('Game is resetted.')
+			this.stopGame(socket);
+			this.players = {};
+			this.arrows = {};
+			this.bases = null;
+			this.points = {};
+			this.isGameRunning = true;
+		});
+
+		socket.on(ServerEvent.stop, () => {
+			console.info('Game was stopped.')
+			this.stopGame(socket);
+		});
+	}
+
 	private addSignOnListener (socket): void {
 		socket.on(GameEvent.authentication, (options: AuthenticationData) => {
-			console.info(GameEvent.authentication);
+			if (!this.isGameRunning) {
+				socket.emit(ServerEvent.stop);
+				return;
+			}
 			// make sure data for bases is available
 			if (!this.bases) {
 				socket.on(GameEvent.setup, (data: SetupData) => {

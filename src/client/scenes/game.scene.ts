@@ -208,6 +208,11 @@ export class GameScene extends Phaser.Scene implements LifeCycle {
 			location.reload();
 		});
 
+		// game over (stopped)
+		this.socket.on(ServerEvent.stop, () => {
+			this.scene.pause('GameScene');
+		});
+
 		// get initial list of players
 		this.socket.on(PlayerEvent.players, (players: PlayerData[]) => {
 			players.forEach(playerData => {

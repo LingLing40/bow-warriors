@@ -1,7 +1,7 @@
 import {GameScene} from '../scenes/game.scene';
 import {DEBUG} from '../../shared/config';
 import {Character} from '../../shared/models';
-import {GameEvent} from '../../shared/events.model';
+import {GameEvent, ServerEvent} from '../../shared/events.model';
 import {LoginScene} from '../scenes/login';
 
 export class Game {
@@ -49,11 +49,16 @@ export class Game {
 	public authenticate (name: string, character: Character) {
 		const scene = this.game.scene.keys['GameScene'];
 		if (scene && scene.socket) {
+			scene.socket.on(ServerEvent.stop, () => {
+				document.querySelector('.gameover-screen').classList.remove('hide');
+			});
 			scene.socket.emit(GameEvent.authentication, {
 				name,
 				character
 			});
 		}
+
+		this.checkGameControls();
 	}
 
 	public calculateGameSize (): { width: number, height: number } {
@@ -81,5 +86,31 @@ export class Game {
 			width,
 			height
 		};
+	}
+
+	public checkGameControls () {
+		const urlParams = new URLSearchParams(window.location.search);
+		const isAdmin = urlParams.get('admin');
+		const scene = this.game.scene.keys['GameScene'];
+
+		if (isAdmin && scene && scene.socket) {
+
+			const controls = document.querySelector('.admin-controls');
+			controls.classList.remove('hide');
+
+			const stopButton = document.createElement('button');
+			stopButton.innerHTML = 'STOP';
+			stopButton.addEventListener('click', () => {
+				scene.socket.emit(ServerEvent.stop);
+			});
+			controls.appendChild(stopButton);
+
+			const resetButton = document.createElement('button');
+			resetButton.innerHTML = 'RESET';
+			resetButton.addEventListener('click', () => {
+				scene.socket.emit(ServerEvent.reset);
+			});
+			controls.appendChild(resetButton);
+		}
 	}
 }
