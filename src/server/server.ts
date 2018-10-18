@@ -346,4 +346,5 @@ class GameServer {
 
 const gameSession = new GameServer();
 
-gameSession.connect(3000);
+const port = process.env.PORT || 3000;
+gameSession.connect(port);
