@@ -11,7 +11,7 @@
     "test:ci": "karma start --singleRun",
     "test": "",
     "build": "concurrently -s \"last\" \"webpack --env=prod\" \"tsc src/server/server\"",
-    "heroku-postbuild": "build",
+    "heroku-postbuild": "npm run build",
     "start": "node ./src/server/server.js"
   },
   "repository": {
