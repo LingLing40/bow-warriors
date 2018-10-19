@@ -1,4 +1,4 @@
-export const DEBUG: boolean = true;
+export const DEBUG: boolean = false;
 
 export const TeamColors: { [key: string]: number } = {
 	blue: 0x1E90FF,
