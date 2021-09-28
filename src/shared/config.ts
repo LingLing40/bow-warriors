@@ -5,7 +5,7 @@ export const TeamColors: { [key: string]: number } = {
 	red: 0xCD5C5C
 };
 
-export const BASE_HEALTH = 3;
+export const BASE_HEALTH = 5;
 export const POINTS_HIT = 10;
 export const POINTS_BONUS_DEADLY_HIT = 20;
 export const POINTS_FRIENDLY_HIT = -5;
