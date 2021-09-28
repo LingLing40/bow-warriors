@@ -4,7 +4,7 @@ export const enum LayerDepth {
 	WORLD_ABOVE_PLAYER = 10,
 	WORLD_ABOVE_PLAYER2 = 11,
 	HUD = 15,
-	HEARTS = 50,
+	HEARTS = 25,
 	POINTS = 26,
 	ACTION_BUTTON = 29,
 	JOYSTICK = 30
