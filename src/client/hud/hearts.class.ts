@@ -5,7 +5,7 @@ export class Hearts {
 
 	private healthDisplay: Container;
 	private health: number = 0;
-	private heartSize: number = 16;
+	private heartSize: number = 32;
 
 	constructor (scene: Scene, private maxHealth: number) {
 		this.health = maxHealth;
