@@ -5,7 +5,7 @@ export class Hearts {
 
 	private healthDisplay: Container;
 	private health: number = 0;
-	private heartSize: number = 32;
+	private heartSize: number = 16;
 
 	constructor (scene: Scene, private maxHealth: number) {
 		this.health = maxHealth;
@@ -13,7 +13,7 @@ export class Hearts {
 		const hearts: Sprite[] = [];
 		let heart: Sprite;
 		for (let i = 0; i < maxHealth; i++) {
-			heart = scene.add.sprite(this.heartSize * i + this.heartSize / 8 * i, 0, 'heart');
+			heart = scene.add.sprite(this.heartSize * i + this.heartSize / 4 * i, 0, 'heart');
 			heart
 				.setFrame(0)
 				.setScale(this.heartSize / heart.width);
